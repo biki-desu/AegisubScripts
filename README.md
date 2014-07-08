@@ -4,10 +4,14 @@ AegisubScripts
 Aegisub Automation Scripts written by biki
 
 ## ./
+
+
 ### Prepend stuff to selected lines
 File: prepend.lua
 Version: 2.1
-Info: This script adds text from the textbox to selected lines. Can add stuff before or after text
+
+Info:
+This script adds text from the textbox to selected lines. Can add stuff before or after text
 If one line is present in txtbox, it adds it to all selected lines.
 If there are "d" lines in the txtbox and "n" lines are selected then if and only if "d" is a divisor of "n" the script then adds an ordered multiple of the lines from the txtbox to the selected lines.
 If the same amount of lines is in the txtbox as the amount of selected lines then it adds each new line from the txtbox to each new line in selection.
@@ -25,8 +29,12 @@ Changelog:
 2.0.1: Write some documentation & add "multiple of selected lines" functionality
 2.0: Initial full rewrite of add-stuff-to-selected-lines.lua@v1.1
 
+
+
 ## ./.old/
 Old/deprecated versions of my scripts
+
+
 ### Add stuff to selected lines
 File: add-stuff-to-selected-lines.lua
 Version: 1.1 (Superseded by "Prepend stuff to selected lines")
