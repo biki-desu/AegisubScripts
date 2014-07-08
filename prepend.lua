@@ -2,7 +2,7 @@ local tr = aegisub.gettext
 
 script_name = tr"Prepend stuff to selected lines"
 script_description = tr"Prepends stuff from textbox to all selected lines"
-script_author = "Suomynona"
+script_author = "biki-desu"
 script_version = "2.0"
 
 if not prepend_stuff_ui then prepend_stuff_ui = {} end
