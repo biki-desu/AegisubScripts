@@ -8,7 +8,7 @@ Aegisub Automation Scripts written by biki
 
 ### Prepend stuff to selected lines
 File: prepend.lua
-Version: 2.1
+Version: 2.1.1
 
 Info:
 This script adds text from the textbox to selected lines. Can add stuff before or after text
@@ -25,6 +25,7 @@ To-do:
 5. Make a script to copy tags from lines
 
 Changelog:
+2.1.1: Add support for Winblows and clean up string substitutions
 2.1: Add append functionality & clean up code
 2.0.1: Write some documentation & add "multiple of selected lines" functionality
 2.0: Initial full rewrite of add-stuff-to-selected-lines.lua@v1.1
