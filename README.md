@@ -8,15 +8,21 @@ Aegisub Automation Scripts written by biki
 
 ### Copy tags
 File: copytags.lua
+<<<<<<< HEAD
+
+Version: 1.3.3
+=======
 Version: 1.3.2
+>>>>>>> d5a7378a503aca3e6abca58318663652970e5356
 
 Info: Strips out text and comments from selected lines and puts them in a textbox (doesn't modify original lines). Can also copy tags directly to clipboard (for hotkey binding (no gui)).
 
 To-do: 
-1. Kill wrapper functions
-2. Get re.find to work
+1. Get re.find to work
+2. Kill wrapper functions
 
 Changelog: 
+1.3.3: Actually do error handling & gettext
 1.3.2: Fix line endings bug
 1.3.1: Fix syntax error
 1.3: Added clipboard functionality
@@ -26,21 +32,28 @@ Changelog:
 
 ### Paste tags
 File: pastetags.lua
+<<<<<<< HEAD
+=======
 Version: 1.1
+>>>>>>> d5a7378a503aca3e6abca58318663652970e5356
 
-Info: Pastes tags from clipboard, same core functionality as "Prepend stuff to selected lines" byt with no gui.
+Version: 1.1.1
+
+Info: Pastes tags from clipboard, same core functionality as "Prepend stuff to selected lines" but with no gui.
 
 To-do:
-1. Kill wrapper functions
-2. Get re.find to work
+1. Get re.find to work
+2. Kill wrapper functions
 
 Changelog: 
+1.1.1: Actually do error handling & gettext
 1.1: Make the script actually work & fix line endings
 1.0: Initial commit (broken)
 
 ### Prepend stuff to selected lines
 File: prepend.lua
-Version: 2.1.1
+
+Version: 2.1.2
 
 Info:
 This script adds text from the textbox to selected lines. Can add stuff before or after text
@@ -50,13 +63,10 @@ If the same amount of lines is in the txtbox as the amount of selected lines the
 If txtbox lines > selection OR "d" not a multiple of "n" then spit error.
 
 To-do:
-1. Add clipboard functionality
-2. Clean up helper functions
-3. Fix error and information messages
-4. Enable adding after tags in initial lines
-5. Make a script to copy tags from lines
+1. Clean up helper functions
 
 Changelog:
+2.1.2: Actually do error handling & gettext
 2.1.1: Add support for Winblows and clean up string substitutions
 2.1: Add append functionality & clean up code
 2.0.1: Write some documentation & add "multiple of selected lines" functionality
@@ -70,8 +80,17 @@ Old/deprecated versions of my scripts
 
 ### Add stuff to selected lines
 File: add-stuff-to-selected-lines.lua
+
 Version: 1.1 (Superseded by "Prepend stuff to selected lines")
+
 Info: This script adds text from textbox to all selected lines
+
+### Deduplicate
+File: deduplicate.ass
+
+Version: 1.0 (Broken and needs fixing)
+
+Info: It's meant to concatenate identical lines when importing from SRT which had one ASS line per frame throughout. It's not known if this works
 
 ### Template
 File: 
