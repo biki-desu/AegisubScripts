@@ -5,7 +5,7 @@ script_description_ui = tr"Copies tags from selected lines to textbox"
 script_name_cl = tr"Copy tags to clipboard"
 script_description_cl = tr"Copies tags from selected lines to clipboard"
 script_author = "biki-desu"
-script_version = "1.2"
+script_version = "1.3"
 
 local t_c = tr"Copy to Clipboard"
 local t_e = tr"Exit"
@@ -17,7 +17,7 @@ function copytags_cl(subs, selected_lines)
     clipboard.set(tagggs)
 end
 
-function copytags_ui(subs, selected_lines, active_line)
+function copytags_ui(subs, selected_lines)
     tagggs = getTagsFromSelectedLines(subs, selected_lines)
 
     copytags_gui = {}
@@ -37,6 +37,7 @@ end
 --Helper Functions--
 --------------------
 
+--Code deduplication
 function getTagsFromSelectedLines(subs, selected_lines)
     local sTags = "", slTags = ""
     for x, i in ipairs(selected_lines) do
@@ -48,19 +49,17 @@ function getTagsFromSelectedLines(subs, selected_lines)
     return sTags
 end
 
+--Wrapper for string.find as re.find doesn't work
 function getTagsFromLine(l)
-    local r = {}
+    local sTags = ""
     local i = 1
     while true do
         local p, q
         p, q = string.find(l, "({\\[^}]*})", i)
         if p == nil then break end
-        table.insert(r,string.sub(l, p, q))
+        sTags = sTags .. string.sub(l, p, q) .. "\n"
         i = q + 1
     end
-
-    local sTags = ""
-    for key,value in pairs(r) do sTags = sTags .. value .. "\n" end
     sTags = string.gsub(sTags, "(\n)$", "")
     return sTags
 end
