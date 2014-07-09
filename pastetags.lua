@@ -3,17 +3,18 @@ local tr = aegisub.gettext
 script_name = tr"Paste tags from clipboard"
 script_description = tr"Prepends tags from clipboard to selected lines"
 script_author = "biki-desu"
-script_version = "1.1"
+script_version = "1.1.1"
 
-require "clipboard"
+clipboard = require 'aegisub.clipboard'
 
 function pastetags_cl(subs, selected_lines)
     local clipboard_content = clipboard.get()
+    if clipboard_content = nil then err(tr"The clipboard does not currently contain text or an error occured.") end
     local tablefiedClipboard = stringToTable(clipboard_content)
     local supplied_lines = getTagsFromTable(tablefiedClipboard)
 
     if isInteger(#selected_lines / #supplied_lines) then
-        if #selected_lines / #supplied_lines == 1 then errtxt = string.format("Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format("Add %q to selected line.", cfg_v.textbox) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format("Add %q to %s selected lines.", cfg_v.textbox, #selected_lines) else errtxt = string.format("Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
+        if #selected_lines / #supplied_lines == 1 then errtxt = string.format(tr"Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format(tr"Add %q to selected line.", cfg_v.textbox) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format(tr"Add %q to %s selected lines.", cfg_v.textbox, #selected_lines) else errtxt = string.format(tr"Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
         aegisub.set_undo_point(errtxt) --plural undo text ^^
         
         local y --counter for the supplied_lines table repetition (does the same thing as x when table has "x" thing in it, otherwise it repeats itself )
@@ -24,8 +25,7 @@ function pastetags_cl(subs, selected_lines)
             subs[i] = l
         end
     else
-        errtxt = string.format("Line count of the selection (%s) doesn't match pasted data (%s).", #supplied_lines, #selected_lines)
-        aegisub.dialog.display({{class="label", label=errtxt, x=0, y=0, width=4, height=2}}, {"OK"}, {close='OK'})
+        err(string.format(tr"Line count of the selection (%s) doesn't match pasted data (%s).", #supplied_lines, #selected_lines))
     end
 end
 
@@ -33,9 +33,15 @@ end
 --Helper Functions--
 --------------------
 
+--lazy way of doing error dialogs
+function err(errtxt)
+    aegisub.log(0, errtxt)
+    aegisub.cancel()
+end
+
 --Returns true if a number is an integer
 function isInteger(x)
-    return math.floor(x)==x
+    return math.floor(x) == x
 end
 
 --Splits a multi-line string into a table of one-line strings

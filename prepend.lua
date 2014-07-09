@@ -3,10 +3,11 @@ local tr = aegisub.gettext
 script_name = tr"Prepend stuff to selected lines"
 script_description = tr"Prepends stuff from textbox to all selected lines"
 script_author = "biki-desu"
-script_version = "2.1.1"
+script_version = "2.1.2"
 
 if not prepend_stuff_ui then prepend_stuff_ui = {} end
 prepend_stuff_ui.cfg = {{ class = "textbox"; name = "textbox"; x = 0; y = 0; height = 8; width = 80 }}
+
 local t_p = tr"Prepend"
 local t_a = tr"Append"
 local t_e = tr"Exit"
@@ -17,7 +18,7 @@ function prepend_stuff(subs, selected_lines, active_line)
     if cfg_k == t_p or cfg_k == t_e then --don't care whenever prepending/appending at this point
         local supplied_lines = stringToTable(cfg_v.textbox)
         if isInteger(#selected_lines / #supplied_lines) then
-            if #selected_lines / #supplied_lines == 1 then errtxt = string.format("Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format("Add %q to selected line.", cfg_v.textbox) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format("Add %q to %s selected lines.", cfg_v.textbox, #selected_lines) else errtxt = string.format("Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
+            if #selected_lines / #supplied_lines == 1 then errtxt = string.format(tr"Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format(tr"Add %q to selected line.", cfg_v.textbox) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format(tr"Add %q to %s selected lines.", cfg_v.textbox, #selected_lines) else errtxt = string.format(tr"Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
             aegisub.set_undo_point(errtxt) --plural undo text ^^
             
             local y --counter for the supplied_lines table repetition (does the same thing as x when table has "x" thing in it, otherwise it repeats itself )
@@ -28,18 +29,22 @@ function prepend_stuff(subs, selected_lines, active_line)
                 subs[i] = l
             end
         else
-            errtxt = string.format("Line count of the selection (%s) doesn't match pasted data (%s).", #supplied_lines, #selected_lines)
-            aegisub.dialog.display({{class="label", label=errtxt, x=0, y=0, width=4, height=2}}, {"OK"}, {close='OK'})
+            err(string.format(tr"Line count of the selection (%s) doesn't match pasted data (%s).", #supplied_lines, #selected_lines))
         end
-        aegisub.progress.task(tr"Done")
     else
-        aegisub.progress.task(tr"Cancelled")
+        aegisub.cancel()
     end
 end
 
 --------------------
 --Helper Functions--
 --------------------
+
+--lazy way of doing error dialogs
+function err(errtxt)
+    aegisub.log(0, errtxt)
+    aegisub.cancel()
+end
 
 --Returns true if a number is an integer
 function isInteger(x)

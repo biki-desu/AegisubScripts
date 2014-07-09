@@ -5,16 +5,16 @@ script_description_ui = tr"Copies tags from selected lines to textbox"
 script_name_cl = tr"Copy tags to clipboard"
 script_description_cl = tr"Copies tags from selected lines to clipboard"
 script_author = "biki-desu"
-script_version = "1.3.2"
+script_version = "1.3.3"
+
+clipboard = require 'aegisub.clipboard'
 
 local t_c = tr"Copy to Clipboard"
 local t_e = tr"Exit"
 
-require "clipboard"
-
 function copytags_cl(subs, selected_lines)
     tagggs = getTagsFromSelectedLines(subs, selected_lines)
-    clipboard.set(tagggs)
+    if not clipboard.set(tagggs) then err(tr"The clipboard could not be set, an error occurred.") end
 end
 
 function copytags_ui(subs, selected_lines)
@@ -26,16 +26,22 @@ function copytags_ui(subs, selected_lines)
     cfg_k, cfg_v = aegisub.dialog.display(copytags_gui.cfg, {t_c, t_e})
 
     if cfg_k == t_c then
-        clipboard.set(tagggs)
+        if not clipboard.set(tagggs) then err(tr"The clipboard could not be set, an error occurred.") end
         aegisub.progress.task(tr"Done")
     else
-        aegisub.progress.task(tr"Cancelled")
+        aegisub.cancel()
     end
 end
 
 --------------------
 --Helper Functions--
 --------------------
+
+--lazy way of doing error dialogs
+function err(errtxt)
+    aegisub.log(0, errtxt)
+    aegisub.cancel()
+end
 
 --Code deduplication
 function getTagsFromSelectedLines(subs, selected_lines)
