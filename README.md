@@ -6,6 +6,35 @@ Aegisub Automation Scripts written by biki
 ## ./
 
 
+### Copy tags
+File: copytags.lua
+Version: 1.3
+
+Info: Strips out text and comments from selected lines and puts them in a textbox (doesn't modify original lines). Can also copy tags directly to clipboard (for hotkey binding (no gui)).
+
+To-do: 
+1. Kill wrapper functions
+2. Get re.find to work
+
+Changelog: 
+1.3: Added clipboard functionality
+1.2: Bugfix: strip comments
+1.1: Rewrite & initial commit
+1.0: Initial version (deprecated)
+
+### Paste tags
+File: pastetags.lua
+Version: 1.0
+
+Info: Pastes tags from clipboard, same core functionality as "Prepend stuff to selected lines" byt with no gui.
+
+To-do:
+1. Kill wrapper functions
+2. Get re.find to work
+
+Changelog: 
+1.0: Initial commit
+
 ### Prepend stuff to selected lines
 File: prepend.lua
 Version: 2.1.1
@@ -28,7 +57,7 @@ Changelog:
 2.1.1: Add support for Winblows and clean up string substitutions
 2.1: Add append functionality & clean up code
 2.0.1: Write some documentation & add "multiple of selected lines" functionality
-2.0: Initial full rewrite of add-stuff-to-selected-lines.lua@v1.1
+2.0: Initial full rewrite of add-stuff-to-selected-lines.lua@v1.1 & initial commit
 
 
 
@@ -40,3 +69,10 @@ Old/deprecated versions of my scripts
 File: add-stuff-to-selected-lines.lua
 Version: 1.1 (Superseded by "Prepend stuff to selected lines")
 Info: This script adds text from textbox to all selected lines
+
+### Template
+File: 
+Version: 
+Info: 
+To-do: 
+Changelog: 
