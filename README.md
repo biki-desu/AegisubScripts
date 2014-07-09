@@ -8,12 +8,8 @@ Aegisub Automation Scripts written by biki
 
 ### Copy tags
 File: copytags.lua
-<<<<<<< HEAD
 
 Version: 1.3.3
-=======
-Version: 1.3.2
->>>>>>> d5a7378a503aca3e6abca58318663652970e5356
 
 Info: Strips out text and comments from selected lines and puts them in a textbox (doesn't modify original lines). Can also copy tags directly to clipboard (for hotkey binding (no gui)).
 
@@ -32,10 +28,6 @@ Changelog:
 
 ### Paste tags
 File: pastetags.lua
-<<<<<<< HEAD
-=======
-Version: 1.1
->>>>>>> d5a7378a503aca3e6abca58318663652970e5356
 
 Version: 1.1.1
 
