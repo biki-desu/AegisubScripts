@@ -17,6 +17,8 @@ To-do:
 2. Get re.find to work
 
 Changelog: 
+1.3.2: Fix line endings bug
+1.3.1: Fix syntax error
 1.3: Added clipboard functionality
 1.2: Bugfix: strip comments
 1.1: Rewrite & initial commit
@@ -33,7 +35,8 @@ To-do:
 2. Get re.find to work
 
 Changelog: 
-1.0: Initial commit
+1.1: Make the script actually work & fix line endings
+1.0: Initial commit (broken)
 
 ### Prepend stuff to selected lines
 File: prepend.lua

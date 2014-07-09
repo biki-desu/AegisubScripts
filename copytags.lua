@@ -5,7 +5,7 @@ script_description_ui = tr"Copies tags from selected lines to textbox"
 script_name_cl = tr"Copy tags to clipboard"
 script_description_cl = tr"Copies tags from selected lines to clipboard"
 script_author = "biki-desu"
-script_version = "1.3"
+script_version = "1.3.2"
 
 local t_c = tr"Copy to Clipboard"
 local t_e = tr"Exit"
@@ -39,7 +39,8 @@ end
 
 --Code deduplication
 function getTagsFromSelectedLines(subs, selected_lines)
-    local sTags = "", slTags = ""
+    local sTags = ""
+    local slTags = ""
     for x, i in ipairs(selected_lines) do
         local l = subs[i].text
         slTags = getTagsFromLine(l)
@@ -57,10 +58,10 @@ function getTagsFromLine(l)
         local p, q
         p, q = string.find(l, "({\\[^}]*})", i)
         if p == nil then break end
-        sTags = sTags .. string.sub(l, p, q) .. "\n"
+        sTags = sTags .. string.sub(l, p, q)
         i = q + 1
     end
-    sTags = string.gsub(sTags, "(\n)$", "")
+    --sTags = string.gsub(sTags, "(\n)$", "")
     return sTags
 end
 
