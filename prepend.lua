@@ -3,7 +3,7 @@ local tr = aegisub.gettext
 script_name = tr"Prepend stuff to selected lines"
 script_description = tr"Prepends stuff from textbox to all selected lines"
 script_author = "biki-desu"
-script_version = "2.1.2"
+script_version = "2.1.3"
 
 if not prepend_stuff_ui then prepend_stuff_ui = {} end
 prepend_stuff_ui.cfg = {{ class = "textbox"; name = "textbox"; x = 0; y = 0; height = 8; width = 80 }}
@@ -16,9 +16,11 @@ function prepend_stuff(subs, selected_lines, active_line)
     local cfg_k, cfg_v, errtxt
     cfg_k, cfg_v = aegisub.dialog.display(prepend_stuff_ui.cfg, {t_p, t_a, t_e})
     if cfg_k == t_p or cfg_k == t_e then --don't care whenever prepending/appending at this point
-        local supplied_lines = stringToTable(cfg_v.textbox)
-        if isInteger(#selected_lines / #supplied_lines) then
-            if #selected_lines / #supplied_lines == 1 then errtxt = string.format(tr"Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format(tr"Add %q to selected line.", cfg_v.textbox) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format(tr"Add %q to %s selected lines.", cfg_v.textbox, #selected_lines) else errtxt = string.format(tr"Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
+        local raw_supplied_lines = cfg_v.textbox
+        local supplied_lines = stringToTable(raw_supplied_lines)
+
+        if isInteger(#selected_lines / #supplied_lines) and not isEmpty(raw_supplied_lines) then
+            if #selected_lines / #supplied_lines == 1 then errtxt = string.format(tr"Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format(tr"Add %q to selected line.", raw_supplied_lines) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format(tr"Add %q to %s selected lines.", raw_supplied_lines, #selected_lines) else errtxt = string.format(tr"Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
             aegisub.set_undo_point(errtxt) --plural undo text ^^
             
             local y --counter for the supplied_lines table repetition (does the same thing as x when table has "x" thing in it, otherwise it repeats itself )
@@ -28,8 +30,14 @@ function prepend_stuff(subs, selected_lines, active_line)
                 if cfg_k == t_p then l.text = supplied_lines[y] .. l.text else l.text = l.text .. supplied_lines[y] end --differentiate between prepending/appending
                 subs[i] = l
             end
-        else
+        elseif isEmpty(raw_supplied_lines) then
+            warn(tr"No text supplied, nothing to do.")
+        elseif isEmpty(supplied_lines) then
+            fatal(tr"Line parsing went wrong. THIS SCRIPT IS BROKEN.")
+        elseif not isInteger(#selected_lines / #supplied_lines) then
             err(string.format(tr"Line count of the selection (%s) doesn't match pasted data (%s).", #supplied_lines, #selected_lines))
+        else
+            fatal(tr"Unknown error occoured, cannot continue.")
         end
     else
         aegisub.cancel()
@@ -41,9 +49,27 @@ end
 --------------------
 
 --lazy way of doing error dialogs
-function err(errtxt)
+function fatal(errtxt)
     aegisub.log(0, errtxt)
     aegisub.cancel()
+end
+function err(errtxt)
+    aegisub.log(1, errtxt)
+    aegisub.cancel()
+end
+function warn(errtxt)
+    aegisub.log(2, errtxt)
+    aegisub.cancel()
+end
+function hint(errtxt)
+    aegisub.log(3, errtxt)
+end
+
+--checks of there is something in the string
+function isEmpty(s)
+    local r = s
+    r = string.gsub(string.gsub(r, "%s", ""), "(\n)", "")
+    if r == "" or r == nil then return true else return false end
 end
 
 --Returns true if a number is an integer
