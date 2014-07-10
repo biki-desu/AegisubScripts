@@ -3,18 +3,18 @@ local tr = aegisub.gettext
 script_name = tr"Paste tags from clipboard"
 script_description = tr"Prepends tags from clipboard to selected lines"
 script_author = "biki-desu"
-script_version = "1.1.1"
+script_version = "1.1.2"
 
 clipboard = require 'aegisub.clipboard'
 
 function pastetags_cl(subs, selected_lines)
-    local clipboard_content = clipboard.get()
-    if clipboard_content = nil then err(tr"The clipboard does not currently contain text or an error occured.") end
-    local tablefiedClipboard = stringToTable(clipboard_content)
-    local supplied_lines = getTagsFromTable(tablefiedClipboard)
+    local clipboard_contents = clipboard.get()
+    if clipboard_contents == nil then err(tr"The clipboard does not currently contain text or an error occured.") end
+    local raw_supplied_lines = getTagsFromLine(clipboard_contents)
+    local supplied_lines = stringToTable(raw_supplied_lines)
 
-    if isInteger(#selected_lines / #supplied_lines) then
-        if #selected_lines / #supplied_lines == 1 then errtxt = string.format(tr"Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format(tr"Add %q to selected line.", cfg_v.textbox) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format(tr"Add %q to %s selected lines.", cfg_v.textbox, #selected_lines) else errtxt = string.format(tr"Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
+    if isInteger(#selected_lines / #supplied_lines) and not isEmpty(getTagsFromLine(raw_supplied_lines)) then
+        if #selected_lines / #supplied_lines == 1 then errtxt = string.format(tr"Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format(tr"Add %q to selected line.", raw_supplied_lines) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format(tr"Add %q to %s selected lines.", raw_supplied_lines, #selected_lines) else errtxt = string.format(tr"Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
         aegisub.set_undo_point(errtxt) --plural undo text ^^
         
         local y --counter for the supplied_lines table repetition (does the same thing as x when table has "x" thing in it, otherwise it repeats itself )
@@ -24,8 +24,14 @@ function pastetags_cl(subs, selected_lines)
             l.text = supplied_lines[y] .. l.text
             subs[i] = l
         end
-    else
+    elseif isEmpty(raw_supplied_lines) then
+        warn(tr"The clipboard doesn't seem to contain any valid tags, nothing to do.")
+    elseif isEmpty(supplied_lines) then
+        fatal(tr"Line parsing went wrong. THIS SCRIPT IS BROKEN.")
+    elseif not isInteger(#selected_lines / #supplied_lines) then
         err(string.format(tr"Line count of the selection (%s) doesn't match pasted data (%s).", #supplied_lines, #selected_lines))
+    else
+        fatal(tr"Unknown error occoured, cannot continue.")
     end
 end
 
@@ -34,9 +40,27 @@ end
 --------------------
 
 --lazy way of doing error dialogs
-function err(errtxt)
+function fatal(errtxt)
     aegisub.log(0, errtxt)
     aegisub.cancel()
+end
+function err(errtxt)
+    aegisub.log(1, errtxt)
+    aegisub.cancel()
+end
+function warn(errtxt)
+    aegisub.log(2, errtxt)
+    aegisub.cancel()
+end
+function hint(errtxt)
+    aegisub.log(3, errtxt)
+end
+
+--checks of there is something in the string
+function isEmpty(s)
+    local r = s
+    r = string.gsub(string.gsub(r, "%s", ""), "(\n)", "")
+    if r == "" or r == nil then return true else return false end
 end
 
 --Returns true if a number is an integer
@@ -75,18 +99,6 @@ function stringToTable(sLine)
     return aTable
 end
 
---Strips text and comments from given table of lines
-function getTagsFromTable(tLines)
-    local sTag = ""
-    local tTags = {}
-    for x, i in ipairs(tLines) do
-        sTag = string.gsub(getTagsFromLine(i), "\r\n", "\n")
-        sTag = string.gsub(sTag, "\n", "\\N")
-        table.insert(tTags,sTag)
-    end
-    return tTags
-end
-
 --Wrapper for string.find as re.find doesn't work
 function getTagsFromLine(l)
     local sTags = ""
@@ -98,7 +110,6 @@ function getTagsFromLine(l)
         sTags = sTags .. string.sub(l, p, q)
         i = q + 1
     end
-    --sTags = string.gsub(sTags, "(\n)$", "")
     return sTags
 end
 
