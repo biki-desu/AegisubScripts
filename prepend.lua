@@ -3,7 +3,7 @@ local tr = aegisub.gettext
 script_name = tr"Prepend stuff to selected lines"
 script_description = tr"Prepends stuff from textbox to all selected lines"
 script_author = "biki-desu"
-script_version = "2.1.3"
+script_version = "2.1.4"
 
 if not prepend_stuff_ui then prepend_stuff_ui = {} end
 prepend_stuff_ui.cfg = {{ class = "textbox"; name = "textbox"; x = 0; y = 0; height = 8; width = 80 }}
@@ -35,7 +35,7 @@ function prepend_stuff(subs, selected_lines, active_line)
         elseif isEmpty(supplied_lines) then
             fatal(tr"Line parsing went wrong. THIS SCRIPT IS BROKEN.")
         elseif not isInteger(#selected_lines / #supplied_lines) then
-            err(string.format(tr"Line count of the selection (%s) doesn't match pasted data (%s).", #supplied_lines, #selected_lines))
+            err(string.format(tr"Line count of the selection (%s) doesn't match pasted data (%s).", #selected_lines, #supplied_lines))
         else
             fatal(tr"Unknown error occoured, cannot continue.")
         end

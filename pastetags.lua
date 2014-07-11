@@ -3,17 +3,17 @@ local tr = aegisub.gettext
 script_name = tr"Paste tags from clipboard"
 script_description = tr"Prepends tags from clipboard to selected lines"
 script_author = "biki-desu"
-script_version = "1.1.2"
+script_version = "1.1.4"
 
 clipboard = require 'aegisub.clipboard'
 
 function pastetags_cl(subs, selected_lines)
     local clipboard_contents = clipboard.get()
     if clipboard_contents == nil then err(tr"The clipboard does not currently contain text or an error occured.") end
-    local raw_supplied_lines = getTagsFromLine(clipboard_contents)
-    local supplied_lines = stringToTable(raw_supplied_lines)
+    local raw_supplied_lines = getTagsFromTable(stringToTable(clipboard_contents))
+    local supplied_lines = raw_supplied_lines --do it this way to have copypastable code from prepend.lua
 
-    if isInteger(#selected_lines / #supplied_lines) and not isEmpty(getTagsFromLine(raw_supplied_lines)) then
+    if isInteger(#selected_lines / #supplied_lines) and not isEmpty(getTagsFromLine(clipboard_contents)) then
         if #selected_lines / #supplied_lines == 1 then errtxt = string.format(tr"Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format(tr"Add %q to selected line.", raw_supplied_lines) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format(tr"Add %q to %s selected lines.", raw_supplied_lines, #selected_lines) else errtxt = string.format(tr"Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
         aegisub.set_undo_point(errtxt) --plural undo text ^^
         
@@ -24,12 +24,12 @@ function pastetags_cl(subs, selected_lines)
             l.text = supplied_lines[y] .. l.text
             subs[i] = l
         end
-    elseif isEmpty(raw_supplied_lines) then
+    elseif isEmpty(tableToString(raw_supplied_lines)) then
         warn(tr"The clipboard doesn't seem to contain any valid tags, nothing to do.")
-    elseif isEmpty(supplied_lines) then
-        fatal(tr"Line parsing went wrong. THIS SCRIPT IS BROKEN.")
+    elseif isEmpty(tableToString(supplied_lines)) then
+        fatal(tr"Line parsing went wrong. THIS SCRIPT IS BROKEN.") --this does fuck all and is redundant, used in prepend.lua tho
     elseif not isInteger(#selected_lines / #supplied_lines) then
-        err(string.format(tr"Line count of the selection (%s) doesn't match pasted data (%s).", #supplied_lines, #selected_lines))
+        err(string.format(tr"Line count of the selection (%s) doesn't match pasted data (%s).", #selected_lines, #supplied_lines))
     else
         fatal(tr"Unknown error occoured, cannot continue.")
     end
@@ -97,6 +97,28 @@ function stringToTable(sLine)
         table.insert(aTable, t)
     end
     return aTable
+end
+
+--split a table into a string using \n as a delimeter
+function tableToString(tTable)
+    local sString = ""
+    for x, i in ipairs(tTable) do
+        sString = sString .. i .. "\n"
+    end
+    sString = string.gsub(sString, "(\n)$", "")
+    return sString
+end
+
+--Strips text and comments from given table of lines
+function getTagsFromTable(tLines)
+    local sTag = ""
+    local tTags = {}
+    for x, i in ipairs(tLines) do
+        sTag = string.gsub(getTagsFromLine(i), "\r\n", "\n")
+        sTag = string.gsub(sTag, "\n", "\\N")
+        table.insert(tTags,sTag)
+    end
+    return tTags
 end
 
 --Wrapper for string.find as re.find doesn't work

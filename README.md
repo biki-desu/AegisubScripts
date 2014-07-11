@@ -29,7 +29,7 @@ Changelog:
 ### Paste tags
 File: pastetags.lua
 
-Version: 1.1.2
+Version: 1.1.4
 
 Info: Pastes tags from clipboard, same core functionality as "Prepend stuff to selected lines" but with no gui.
 
@@ -38,6 +38,8 @@ To-do:
 2. Kill wrapper functions
 
 Changelog: 
+1.1.4: Make error message more accurate
+1.1.3: Unbreak the script
 1.1.2: More error handling & clean up helper function, fix error in an edge case
 1.1.1: Actually do error handling & gettext
 1.1: Make the script actually work & fix line endings
@@ -46,7 +48,7 @@ Changelog:
 ### Prepend stuff to selected lines
 File: prepend.lua
 
-Version: 2.1.3
+Version: 2.1.4
 
 Info:
 This script adds text from the textbox to selected lines. Can add stuff before or after text
@@ -59,6 +61,7 @@ To-do:
 1. Clean up helper functions
 
 Changelog:
+2.1.4: Make error message more accurate
 2.1.3: More error handling
 2.1.2: Actually do error handling & gettext
 2.1.1: Add support for Winblows and clean up string substitutions

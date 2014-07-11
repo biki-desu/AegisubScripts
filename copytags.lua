@@ -14,7 +14,7 @@ local t_e = tr"Exit"
 
 function copytags_cl(subs, selected_lines)
     tagggs = getTagsFromSelectedLines(subs, selected_lines)
-    if not clipboard.set(tagggs) then err(tr"The clipboard could not be set, an error occurred.") end
+    if not clipboard.set(tagggs) then fatal(tr"The clipboard could not be set, an error occurred.") end
 end
 
 function copytags_ui(subs, selected_lines)
@@ -26,7 +26,7 @@ function copytags_ui(subs, selected_lines)
     cfg_k, cfg_v = aegisub.dialog.display(copytags_gui.cfg, {t_c, t_e})
 
     if cfg_k == t_c then
-        if not clipboard.set(tagggs) then err(tr"The clipboard could not be set, an error occurred.") end
+        if not clipboard.set(tagggs) then fatal(tr"The clipboard could not be set, an error occurred.") end
         aegisub.progress.task(tr"Done")
     else
         aegisub.cancel()
@@ -38,9 +38,20 @@ end
 --------------------
 
 --lazy way of doing error dialogs
-function err(errtxt)
+function fatal(errtxt)
     aegisub.log(0, errtxt)
     aegisub.cancel()
+end
+function err(errtxt)
+    aegisub.log(1, errtxt)
+    aegisub.cancel()
+end
+function warn(errtxt)
+    aegisub.log(2, errtxt)
+    aegisub.cancel()
+end
+function hint(errtxt)
+    aegisub.log(3, errtxt)
 end
 
 --Code deduplication
@@ -67,7 +78,6 @@ function getTagsFromLine(l)
         sTags = sTags .. string.sub(l, p, q)
         i = q + 1
     end
-    --sTags = string.gsub(sTags, "(\n)$", "")
     return sTags
 end
 
