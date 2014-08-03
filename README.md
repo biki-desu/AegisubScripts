@@ -31,7 +31,7 @@ File: pastetags.lua
 
 Version: 1.1.4
 
-Info: Pastes tags from clipboard, same core functionality as "Prepend stuff to selected lines" but with no gui.
+Info: Pastes tags from clipboard (prepends them to the line), same (basic) core functionality as "Prepend stuff to selected lines" but with no gui and less features, designed for hotkey binding.
 
 To-do:
 1. Get re.find to work
@@ -48,7 +48,7 @@ Changelog:
 ### Prepend stuff to selected lines
 File: prepend.lua
 
-Version: 2.1.4
+Version: 2.2
 
 Info:
 This script adds text from the textbox to selected lines. Can add stuff before or after text
@@ -61,6 +61,7 @@ To-do:
 1. Clean up helper functions
 
 Changelog:
+2.2: Add more functionality and clean up helper functions
 2.1.4: Make error message more accurate
 2.1.3: More error handling
 2.1.2: Actually do error handling & gettext
