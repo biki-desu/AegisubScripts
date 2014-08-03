@@ -20,12 +20,9 @@ end
 function copytags_ui(subs, selected_lines)
     tagggs = getTagsFromSelectedLines(subs, selected_lines)
 
-    copytags_gui = {}
-    copytags_gui.cfg = {{ class = "textbox"; name = "textbox"; x = 0; y = 0; height = 8; width = 80; value = tagggs }}
-    local cfg_k, cfg_v
-    cfg_k, cfg_v = aegisub.dialog.display(copytags_gui.cfg, {t_c, t_e})
+    local agi_button, agi_result = aegisub.dialog.display({{ class = "textbox"; name = "textbox"; x = 0; y = 0; height = 8; width = 80; value = tagggs }}, {t_c, t_e})
 
-    if cfg_k == t_c then
+    if agi_button == t_c then
         if not clipboard.set(tagggs) then fatal(tr"The clipboard could not be set, an error occurred.") end
         aegisub.progress.task(tr"Done")
     else
