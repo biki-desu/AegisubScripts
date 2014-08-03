@@ -24,9 +24,9 @@ function pastetags_cl(subs, selected_lines)
             l.text = supplied_lines[y] .. l.text
             subs[i] = l
         end
-    elseif isEmpty(tableToString(raw_supplied_lines)) then
+    elseif isEmpty(table.concat(raw_supplied_lines, "\n")) then
         warn(tr"The clipboard doesn't seem to contain any valid tags, nothing to do.")
-    elseif isEmpty(tableToString(supplied_lines)) then
+    elseif isEmpty(table.concat(supplied_lines, "\n")) then
         fatal(tr"Line parsing went wrong. THIS SCRIPT IS BROKEN.") --this does fuck all and is redundant, used in prepend.lua tho
     elseif not isInteger(#selected_lines / #supplied_lines) then
         err(string.format(tr"Line count of the selection (%s) doesn't match pasted data (%s).", #selected_lines, #supplied_lines))
@@ -97,16 +97,6 @@ function stringToTable(sLine)
         table.insert(aTable, t)
     end
     return aTable
-end
-
---split a table into a string using \n as a delimeter
-function tableToString(tTable)
-    local sString = ""
-    for x, i in ipairs(tTable) do
-        sString = sString .. i .. "\n"
-    end
-    sString = string.gsub(sString, "(\n)$", "")
-    return sString
 end
 
 --Strips text and comments from given table of lines
