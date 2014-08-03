@@ -3,31 +3,55 @@ local tr = aegisub.gettext
 script_name = tr"Prepend stuff to selected lines"
 script_description = tr"Prepends stuff from textbox to all selected lines"
 script_author = "biki-desu"
-script_version = "2.1.4"
-
-if not prepend_stuff_ui then prepend_stuff_ui = {} end
-prepend_stuff_ui.cfg = {{ class = "textbox"; name = "textbox"; x = 0; y = 0; height = 8; width = 80 }}
-
-local t_p = tr"Prepend"
-local t_a = tr"Append"
-local t_e = tr"Exit"
+script_version = "2.2"
 
 function prepend_stuff(subs, selected_lines, active_line)
-    local cfg_k, cfg_v, errtxt
-    cfg_k, cfg_v = aegisub.dialog.display(prepend_stuff_ui.cfg, {t_p, t_a, t_e})
-    if cfg_k == t_p or cfg_k == t_e then --don't care whenever prepending/appending at this point
-        local raw_supplied_lines = cfg_v.textbox
-        local supplied_lines = stringToTable(raw_supplied_lines)
+    local t_pl = tr"Prepend line"
+    local t_al = tr"Append line"
+    local t_pft = tr"Prepend first tag"
+    local t_aft = tr"Append first tag"
+    local t_plt = tr"Prepend last tag"
+    local t_alt = tr"Append last tag"
+    local t_e = tr"Cancel"
+
+    local agi_button, agi_result = aegisub.dialog.display({{ class = "textbox"; name = "textbox"; x = 0; y = 0; height = 8; width = 80 }}, {t_pl, t_al, t_pft, t_aft, t_plt, t_alt, t_e})
+
+    if agi_button == t_e then
+        aegisub.cancel()
+    else --don't care whenever prepending/appending at this point
+        local raw_supplied_lines = agi_result.textbox --this needs to be a separate variable for a reason, don't change it!
+        local supplied_lines = splitStringToTableWithDelimeter(string.gsub(raw_supplied_lines, "\r\n", "\n"), "\n") --because windows sucks --not handling "\r" because this is long deprecated
 
         if isInteger(#selected_lines / #supplied_lines) and not isEmpty(raw_supplied_lines) then
+            local errtxt
             if #selected_lines / #supplied_lines == 1 then errtxt = string.format(tr"Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format(tr"Add %q to selected line.", raw_supplied_lines) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format(tr"Add %q to %s selected lines.", raw_supplied_lines, #selected_lines) else errtxt = string.format(tr"Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
             aegisub.set_undo_point(errtxt) --plural undo text ^^
             
-            local y --counter for the supplied_lines table repetition (does the same thing as x when table has "x" thing in it, otherwise it repeats itself )
+            local y --counter for the supplied_lines table repetition (does the same thing as x when table has "x" thing in it)
             for x, i in ipairs(selected_lines) do
                 y = ((x - 1) % #supplied_lines) + 1 --arrays in lua start at 1 so this makes sense (-1 to make it 0,1... and +1 to make it 1,2...)
                 local l = subs[i]
-                if cfg_k == t_p then l.text = supplied_lines[y] .. l.text else l.text = l.text .. supplied_lines[y] end --differentiate between prepending/appending
+                if agi_button == t_pl then --prepend line
+                    l.text = supplied_lines[y] .. l.text
+                elseif agi_button == t_al then --append line
+                    l.text = l.text .. supplied_lines[y]
+                else --prepend/append tags
+                    local a
+                    if agi_button == t_pft then
+                        a = string.find(l.text, "{")
+                    elseif agi_button == t_aft then
+                        a = string.find(l.text, "}")
+                        a = a - 1 --we want to append BEFORE the "}"
+                    elseif agi_button == t_plt then
+                        a = string.find(l.text, "{[^{]*$")
+                    elseif agi_button == t_alt then
+                        _, a = string.find(l.text, "{.*}")
+                        a = a - 1 --we want to append BEFORE the "}"
+                    else
+                        fatal(tr"Unknown action requested, cannot continue.")
+                    end
+                    l.text = string.sub(l.text, 1, a) .. supplied_lines[y] .. string.sub(l.text, a + 1, string.find(l.text, "$"))
+                end
                 subs[i] = l
             end
         elseif isEmpty(raw_supplied_lines) then
@@ -39,8 +63,6 @@ function prepend_stuff(subs, selected_lines, active_line)
         else
             fatal(tr"Unknown error occoured, cannot continue.")
         end
-    else
-        aegisub.cancel()
     end
 end
 
@@ -65,11 +87,22 @@ function hint(errtxt)
     aegisub.log(3, errtxt)
 end
 
---checks of there is something in the string
-function isEmpty(s)
-    local r = s
-    r = string.gsub(string.gsub(r, "%s", ""), "(\n)", "")
-    if r == "" or r == nil then return true else return false end
+--checks if there is something in the string, now with more types
+function isEmpty(x)
+    if type(x) == "nil" then
+        return true
+    elseif type(x) == "string" then
+        if x == "" then return true else return false end
+    elseif type(x) == "number" then
+        return false --a "number" is a result of a calculation, so cannot be empty
+    elseif type(x) == "table" then
+        if table.concat(x) == "" or table.concat(x) == nil then return true else return false end
+    elseif type(x) == "boolean" then
+        return false --you're either true or false, so you cannot be empty
+    else
+        hint(string.format(tr"isEmpty: Cannot check %s type", type(x)))
+        return nil
+    end
 end
 
 --Returns true if a number is an integer
@@ -77,35 +110,24 @@ function isInteger(x)
     return math.floor(x)==x
 end
 
---Splits a multi-line string into a table of one-line strings
-function stringToTable(sLine)
-    local data = string.gsub(sLine, "\r\n", "\n") --because windows sucks --not handling "\r" because this is long deprecated
-    local p = {} --char table for start of line index
-    local q = {} --char table for end of line index
-    table.insert(p, 1) --first entry
-    local i = 0 --counter
-    local j = 0 --counter
+--This is a rewrite of stringToTable, this time with more functionality, less bloat and a variable delimeter
+function splitStringToTableWithDelimeter(sLine, sDelimeter)
+    local tTable = {}
+--counters
+    local p = 1 --start of line segment to split
+    local i = 0 --end of line segment to split + delimeter
+--consts
+    local _, l = string.find(sDelimeter, "$") --length of the delimeter
+    local q = string.find(sLine, "$") --end of line, because we want to a reference point at EOL, DEBUG-HINT: this is incremented by 1
+--stuff
     while true do
-        j = i
-        i = string.find(data, "\n", i + 1) --as "\n" is one character
-        if i == j + 1 then --if line empty, ie: "^...\n(\n)...\n...$" (found the thing in brackets)
-            table.insert(q, i - 1)
-            table.insert(p, i + 1)
-        elseif i == nil then --if found last new line, ie: "^...(\n)...$" (found the thing in brackets)
-            i = string.find(data, "$") --find the index of last character in the string, ie "^...nil"
-            table.insert(q, i - 1)
-            break
-        else --if found a new line and there's at least one more, ie: "^...(\n)...\n...$" (found the thing in brackets)
-            table.insert(q, i - 1)
-            table.insert(p, i + 1)
-        end
+        i = string.find(sLine, sDelimeter, i + l)
+        if i == nil then i = q end --no more delimeters so just get the end of the string...
+        table.insert(tTable, string.sub(sLine, p, i - 1)) --(i-1) because we don't want to include the first character of the delimeter
+        if i == q then break end --we reached the end of the string... it would be wise to stop...
+        p = i + l -- ie: string + delimeter + delimeter
     end
-    local aTable = {}
-    for u = 1, #p, 1 do
-        t = string.sub(data, p[u], q[u])
-        table.insert(aTable, t)
-    end
-    return aTable
+    return tTable
 end
 
 aegisub.register_macro(script_name, script_description, prepend_stuff)
