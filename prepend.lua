@@ -3,7 +3,7 @@ local tr = aegisub.gettext
 script_name = tr"Prepend stuff to selected lines"
 script_description = tr"Prepends stuff from textbox to all selected lines"
 script_author = "biki-desu"
-script_version = "2.2.2"
+script_version = "2.2.3"
 
 --Set button labels / id's
 --Do it here because it's faster
@@ -13,16 +13,19 @@ local t_pft = tr"Prepend first tag"
 local t_aft = tr"Append first tag"
 local t_plt = tr"Prepend last tag"
 local t_alt = tr"Append last tag"
+local t_ir
 local t_c = tr"Clear"
 local t_e = tr"Cancel"
 
 --Configuration
 local c_keepconfig = false --keep script configuration
+local c_mode = 0 --0 means repetitive "abcabcabc", 1 means iterative "aaabbbccc"
 local c_textbox = "" --default text
 
 --This is called first, deals with configuration
 function script_start(subs, selected_lines, active_line)
     if not c_keepconfig then --Check if we want to keep configuration, if not then reset to default
+        c_mode = 0
         c_textbox = ""
     end
 
@@ -31,13 +34,18 @@ end
 
 --This deals with script GUI and does a large chunk of error checking
 function script_gui(subs, selected_lines)
-    local agi_button, agi_result = aegisub.dialog.display({{ class = "textbox"; x = 0; y = 0; width = 80; height = 8; hint = tr"Please insert text here"; name = "textbox"; text = c_textbox; }}, {t_pl, t_al, t_pft, t_aft, t_plt, t_alt, t_c, t_e})
+    if c_mode == 0 then t_ir = "(abcabc) mode" else t_ir = "(aabbcc) mode" end --set current mode button/id
+
+    local agi_button, agi_result = aegisub.dialog.display({{ class = "textbox"; x = 0; y = 0; width = 80; height = 8; hint = tr"Please insert text here"; name = "textbox"; text = c_textbox; }}, {t_pl, t_al, t_pft, t_aft, t_plt, t_alt, t_ir, t_c, t_e})
     c_textbox = agi_result.textbox
 
     if agi_button == t_e then --Cancel
         aegisub.cancel()
     elseif agi_button == t_c then --Clear
         c_textbox = ""
+        script_gui(subs, selected_lines)
+    elseif agi_button == t_ir then --Mode
+        if c_mode == 1 then c_mode = 0 else c_mode = 1 end --invert the current mode
         script_gui(subs, selected_lines)
     else --don't care whenever prepending/appending at this point
         local raw_supplied_lines = c_textbox --this needs to be a separate variable for a reason, don't change it!
@@ -71,7 +79,11 @@ function script_process(subs, selected_lines, supplied_lines, agi_button)
     for x, i in ipairs(selected_lines) do
         if aegisub.progress.is_cancelled() then aegisub.cancel() end --check if we need to cancel
 
-        y = ((x - 1) % #supplied_lines) + 1 --arrays in lua start at 1 so this makes sense (-1 to make it 0,1... and +1 to make it 1,2...)
+        if c_mode == 0 then --abcabc mode
+            y = ((x - 1) % #supplied_lines) + 1 --arrays in lua start at 1 so this makes sense (-1 to make it 0,1... and +1 to make it 1,2...)
+        else --aabbcc mode
+            y = math.ceil((x / #selected_lines) * #supplied_lines)
+        end
         if 0 >= y or y > #selected_lines then fatal(tr"Algorithm error, cannot continue.") end --do some bounds checking, DEBUG-HINT: this does the exact opposite of what it's logically supposed to do
 
         local l = subs[i]
