@@ -39,13 +39,24 @@ function prepend_stuff(subs, selected_lines, active_line)
                     local a
                     if agi_button == t_pft then
                         a = string.find(l.text, "{")
+                        if a == nil then
+                            l.text = "{}" .. l.text
+                            a = 1
+                        end
                     elseif agi_button == t_aft then
                         a = string.find(l.text, "}")
-                        a = a - 1 --we want to append BEFORE the "}"
+                        if a == nil then
+                            l.text = "{}" .. l.text
+                            a = 1
+                        else
+                            a = a - 1 --we want to append BEFORE the "}"
+                        end
                     elseif agi_button == t_plt then
                         a = string.find(l.text, "{[^{]*$")
+                        if a == nil then err(tr"The action cannot be performed.") end
                     elseif agi_button == t_alt then
                         _, a = string.find(l.text, "{.*}")
+                        if a == nil then err(tr"The action cannot be performed.") end
                         a = a - 1 --we want to append BEFORE the "}"
                     else
                         fatal(tr"Unknown action requested, cannot continue.")
