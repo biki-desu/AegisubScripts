@@ -3,68 +3,53 @@ local tr = aegisub.gettext
 script_name = tr"Prepend stuff to selected lines"
 script_description = tr"Prepends stuff from textbox to all selected lines"
 script_author = "biki-desu"
-script_version = "2.2"
+script_version = "2.2.2"
 
-function prepend_stuff(subs, selected_lines, active_line)
-    local t_pl = tr"Prepend line"
-    local t_al = tr"Append line"
-    local t_pft = tr"Prepend first tag"
-    local t_aft = tr"Append first tag"
-    local t_plt = tr"Prepend last tag"
-    local t_alt = tr"Append last tag"
-    local t_e = tr"Cancel"
+--Set button labels / id's
+--Do it here because it's faster
+local t_pl = tr"Prepend line"
+local t_al = tr"Append line"
+local t_pft = tr"Prepend first tag"
+local t_aft = tr"Append first tag"
+local t_plt = tr"Prepend last tag"
+local t_alt = tr"Append last tag"
+local t_c = tr"Clear"
+local t_e = tr"Cancel"
 
-    local agi_button, agi_result = aegisub.dialog.display({{ class = "textbox"; name = "textbox"; x = 0; y = 0; height = 8; width = 80 }}, {t_pl, t_al, t_pft, t_aft, t_plt, t_alt, t_e})
+--Configuration
+local c_keepconfig = false --keep script configuration
+local c_textbox = "" --default text
 
-    if agi_button == t_e then
+--This is called first, deals with configuration
+function script_start(subs, selected_lines, active_line)
+    if not c_keepconfig then --Check if we want to keep configuration, if not then reset to default
+        c_textbox = ""
+    end
+
+    script_gui(subs, selected_lines)
+end
+
+--This deals with script GUI and does a large chunk of error checking
+function script_gui(subs, selected_lines)
+    local agi_button, agi_result = aegisub.dialog.display({{ class = "textbox"; x = 0; y = 0; width = 80; height = 8; hint = tr"Please insert text here"; name = "textbox"; text = c_textbox; }}, {t_pl, t_al, t_pft, t_aft, t_plt, t_alt, t_c, t_e})
+    c_textbox = agi_result.textbox
+
+    if agi_button == t_e then --Cancel
         aegisub.cancel()
+    elseif agi_button == t_c then --Clear
+        c_textbox = ""
+        script_gui(subs, selected_lines)
     else --don't care whenever prepending/appending at this point
-        local raw_supplied_lines = agi_result.textbox --this needs to be a separate variable for a reason, don't change it!
+        local raw_supplied_lines = c_textbox --this needs to be a separate variable for a reason, don't change it!
         local supplied_lines = splitStringToTableWithDelimeter(string.gsub(raw_supplied_lines, "\r\n", "\n"), "\n") --because windows sucks --not handling "\r" because this is long deprecated
 
         if isInteger(#selected_lines / #supplied_lines) and not isEmpty(raw_supplied_lines) then
             local errtxt
             if #selected_lines / #supplied_lines == 1 then errtxt = string.format(tr"Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format(tr"Add %q to selected line.", raw_supplied_lines) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format(tr"Add %q to %s selected lines.", raw_supplied_lines, #selected_lines) else errtxt = string.format(tr"Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
-            aegisub.set_undo_point(errtxt) --plural undo text ^^
-            
-            local y --counter for the supplied_lines table repetition (does the same thing as x when table has "x" thing in it)
-            for x, i in ipairs(selected_lines) do
-                y = ((x - 1) % #supplied_lines) + 1 --arrays in lua start at 1 so this makes sense (-1 to make it 0,1... and +1 to make it 1,2...)
-                local l = subs[i]
-                if agi_button == t_pl then --prepend line
-                    l.text = supplied_lines[y] .. l.text
-                elseif agi_button == t_al then --append line
-                    l.text = l.text .. supplied_lines[y]
-                else --prepend/append tags
-                    local a
-                    if agi_button == t_pft then
-                        a = string.find(l.text, "{")
-                        if a == nil then
-                            l.text = "{}" .. l.text
-                            a = 1
-                        end
-                    elseif agi_button == t_aft then
-                        a = string.find(l.text, "}")
-                        if a == nil then
-                            l.text = "{}" .. l.text
-                            a = 1
-                        else
-                            a = a - 1 --we want to append BEFORE the "}"
-                        end
-                    elseif agi_button == t_plt then
-                        a = string.find(l.text, "{[^{]*$")
-                        if a == nil then err(tr"The action cannot be performed.") end
-                    elseif agi_button == t_alt then
-                        _, a = string.find(l.text, "{.*}")
-                        if a == nil then err(tr"The action cannot be performed.") end
-                        a = a - 1 --we want to append BEFORE the "}"
-                    else
-                        fatal(tr"Unknown action requested, cannot continue.")
-                    end
-                    l.text = string.sub(l.text, 1, a) .. supplied_lines[y] .. string.sub(l.text, a + 1, string.find(l.text, "$"))
-                end
-                subs[i] = l
-            end
+            aegisub.set_undo_point(errtxt)
+            aegisub.progress.task(errtxt)
+
+            script_process(subs, selected_lines, supplied_lines, agi_button)
         elseif isEmpty(raw_supplied_lines) then
             warn(tr"No text supplied, nothing to do.")
         elseif isEmpty(supplied_lines) then
@@ -74,6 +59,61 @@ function prepend_stuff(subs, selected_lines, active_line)
         else
             fatal(tr"Unknown error occoured, cannot continue.")
         end
+    end
+end
+
+--This does the actual prepending/appending
+function script_process(subs, selected_lines, supplied_lines, agi_button)
+    local p_n = 1 --progress numerator
+    local p_d = #selected_lines --progress denominator
+
+    local y --counter for the supplied_lines table repetition (does the same thing as x when table has "x" thing in it)
+    for x, i in ipairs(selected_lines) do
+        if aegisub.progress.is_cancelled() then aegisub.cancel() end --check if we need to cancel
+
+        y = ((x - 1) % #supplied_lines) + 1 --arrays in lua start at 1 so this makes sense (-1 to make it 0,1... and +1 to make it 1,2...)
+        if 0 >= y or y > #selected_lines then fatal(tr"Algorithm error, cannot continue.") end --do some bounds checking, DEBUG-HINT: this does the exact opposite of what it's logically supposed to do
+
+        local l = subs[i]
+
+        --FYI, doing checking in the loop because it's silly to assume that all lines are the same
+        if agi_button == t_pl then --Prepend line
+            l.text = supplied_lines[y] .. l.text
+        elseif agi_button == t_al then --Append line
+            l.text = l.text .. supplied_lines[y]
+        else --P/A f/l tags
+            local a
+            if agi_button == t_pft then --Prepend first tag
+                a = string.find(l.text, "{")
+                if a == nil then
+                    l.text = "{}" .. l.text
+                    a = 1
+                end
+            elseif agi_button == t_aft then --Append first tag
+                a = string.find(l.text, "}")
+                if a == nil then
+                    l.text = "{}" .. l.text
+                    a = 1
+                else
+                    a = a - 1 --we want to append BEFORE the "}"
+                end
+            elseif agi_button == t_plt then --Prepend last tag
+                a = string.find(l.text, "{[^{]*$")
+                if a == nil then err(tr"The action cannot be performed because there are no tags in the line.") end
+            elseif agi_button == t_alt then --Append last tag
+                _, a = string.find(l.text, "{.*}")
+                if a == nil then err(tr"The action cannot be performed because there are no tags in the line.") end
+                a = a - 1 --we want to append BEFORE the "}"
+            else --this should not happen, but is here just in case I add an extra button and don't write any processing code for it
+                fatal(tr"Unknown action requested, cannot continue.")
+            end
+            l.text = string.sub(l.text, 1, a) .. supplied_lines[y] .. string.sub(l.text, a + 1, string.find(l.text, "$"))
+        end
+
+        subs[i] = l
+
+        aegisub.progress.set((p_n / p_d) * 100)
+        p_n = p_n + 1
     end
 end
 
@@ -141,4 +181,4 @@ function splitStringToTableWithDelimeter(sLine, sDelimeter)
     return tTable
 end
 
-aegisub.register_macro(script_name, script_description, prepend_stuff)
+aegisub.register_macro(script_name, script_description, script_start)

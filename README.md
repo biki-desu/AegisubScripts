@@ -48,7 +48,7 @@ Changelog:
 ### Prepend stuff to selected lines
 File: prepend.lua
 
-Version: 2.2.1
+Version: 2.2.2
 
 Info:
 This script adds text from the textbox to selected lines. Can add stuff before or after text
@@ -61,6 +61,7 @@ To-do:
 1. Clean up helper functions
 
 Changelog:
+2.2.2: Do progress reporting, actually stop when user presses cancel, add a clear button and some local config
 2.2.1: Fix Issue#3
 2.2: Add more functionality and clean up helper functions
 2.1.4: Make error message more accurate
