@@ -1,18 +1,17 @@
 AegisubScripts
-==============
+--------------
 
 Aegisub Automation Scripts written by biki
 
 ## ./
---------------
-
+==============
 
 ### Copy tags
-File: **copytags.lua**
+**File:** copytags.lua
 
-Version: **1.3.3**
+**Version:** 1.3.3
 
-Info: Strips out text and comments from selected lines and puts them in a textbox (doesn't modify original lines). Can also copy tags directly to clipboard (for hotkey binding (no gui)).
+**Info:** Strips out text and comments from selected lines and puts them in a textbox (doesn't modify original lines). Can also copy tags directly to clipboard (for hotkey binding (no gui)).
 
 ##### To-do: 
 * Get re.find to work
@@ -29,11 +28,11 @@ Info: Strips out text and comments from selected lines and puts them in a textbo
 
 
 ### Paste tags
-File: **pastetags.lua**
+**File:** pastetags.lua
 
-Version: **1.1.4**
+**Version:** 1.1.4
 
-Info: Pastes tags from clipboard (prepends them to the line), same (basic) core functionality as "Prepend stuff to selected lines" but with no gui and less features, designed for hotkey binding.
+**Info:** Pastes tags from clipboard (prepends them to the line), same (basic) core functionality as "Prepend stuff to selected lines" but with no gui and less features, designed for hotkey binding.
 
 ##### To-do:
 * Get re.find to work
@@ -49,9 +48,9 @@ Info: Pastes tags from clipboard (prepends them to the line), same (basic) core 
 
 
 ### Prepend stuff to selected lines
-File: **prepend.lua**
+**File:** prepend.lua
 
-Version: **2.2.3**
+**Version:** 2.2.3
 
 ##### Info:
 * This script can prepend & append text & tags from the textbox to selected lines.
@@ -84,7 +83,7 @@ Version: **2.2.3**
 
 
 ## ./.old/
---------------
+==============
 Old/deprecated versions of my scripts
 
 
