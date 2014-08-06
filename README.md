@@ -4,7 +4,7 @@ AegisubScripts
 Aegisub Automation Scripts written by biki
 
 ## ./
-==============
+--------------
 
 ### Copy tags
 **File:** copytags.lua
@@ -14,8 +14,7 @@ Aegisub Automation Scripts written by biki
 **Info:** Strips out text and comments from selected lines and puts them in a textbox (doesn't modify original lines). Can also copy tags directly to clipboard (for hotkey binding (no gui)).
 
 ##### To-do: 
-* Get re.find to work
-* Kill wrapper functions
+* Make copypastetags.lua
 
 ##### Changelog: 
 * 1.3.3: Actually do error handling & gettext
@@ -35,8 +34,7 @@ Aegisub Automation Scripts written by biki
 **Info:** Pastes tags from clipboard (prepends them to the line), same (basic) core functionality as "Prepend stuff to selected lines" but with no gui and less features, designed for hotkey binding.
 
 ##### To-do:
-* Get re.find to work
-* Kill wrapper functions
+* Make copypastetags.lua
 
 ##### Changelog: 
 * 1.1.4: Make error message more accurate
@@ -64,8 +62,8 @@ Aegisub Automation Scripts written by biki
 * **WARNING**: New lines are significant, so if you leave a blank new line at the end in the textbox the script may not perform as you'd expect.
 
 ##### To-do:
-1. Clean up helper functions
-2. Add miscellaneous functionality, mainly [Issue#5](https://github.com/biki-desu/AegisubScripts/issues/5)
+* Clean up helper functions
+* Add miscellaneous functionality, mainly [Issue#5](https://github.com/biki-desu/AegisubScripts/issues/5)
 
 ##### Changelog:
 * 2.2.3: Close [Issue#4](https://github.com/biki-desu/AegisubScripts/issues/4)
@@ -83,7 +81,7 @@ Aegisub Automation Scripts written by biki
 
 
 ## ./.old/
-==============
+--------------
 Old/deprecated versions of my scripts
 
 
