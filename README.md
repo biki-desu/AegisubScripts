@@ -10,16 +10,16 @@ Aegisub Automation Scripts written by biki
 ### Copy tags
 #### File: **copytags.lua**
 
-#### Version: **1.3.3**
+Version: **1.3.3**
 
-#### Info:
+Info:
 * Strips out text and comments from selected lines and puts them in a textbox (doesn't modify original lines). Can also copy tags directly to clipboard (for hotkey binding (no gui)).
 
-#### To-do: 
+To-do: 
 1. Get re.find to work
 2. Kill wrapper functions
 
-#### Changelog: 
+Changelog: 
 * 1.3.3: Actually do error handling & gettext
 * 1.3.2: Fix line endings bug
 * 1.3.1: Fix syntax error
@@ -30,18 +30,18 @@ Aegisub Automation Scripts written by biki
 
 
 ### Paste tags
-#### File: **pastetags.lua**
+File: **pastetags.lua**
 
-#### Version: **1.1.4**
+Version: **1.1.4**
 
-#### Info:
+Info:
 * Pastes tags from clipboard (prepends them to the line), same (basic) core functionality as "Prepend stuff to selected lines" but with no gui and less features, designed for hotkey binding.
 
-#### To-do:
+To-do:
 1. Get re.find to work
 2. Kill wrapper functions
 
-#### Changelog: 
+Changelog: 
 * 1.1.4: Make error message more accurate
 * 1.1.3: Unbreak the script
 * 1.1.2: More error handling & clean up helper function, fix error in an edge case
@@ -51,11 +51,11 @@ Aegisub Automation Scripts written by biki
 
 
 ### Prepend stuff to selected lines
-#### File: prepend.lua
+File: **prepend.lua**
 
-#### Version: **2.2.3**
+Version: **2.2.3**
 
-#### Info:
+Info:
 * This script can prepend & append text & tags from the textbox to selected lines.
 * If the same amount of lines is present in the txtbox as the amount of selected lines then the script prepends/appends each new line from the txtbox to each new line in selection.
 * The script can do a variety of different things when there's a different amount of selected lines compared to selected lines:
@@ -66,14 +66,14 @@ Aegisub Automation Scripts written by biki
   * The (aabbcc) mode. Meaning that that the first line is repeated n/d times, then the 2nd line is repeated n/d times and so on...
 * **WARNING**: New lines are significant, so if you leave a blank new line at the end in the textbox the script may not perform as you'd expect.
 
-#### To-do:
+To-do:
 1. Clean up helper functions
 2. Add miscellaneous functionality, mainly [Issue#5](https://github.com/biki-desu/AegisubScripts/issues/5)
 
-#### Changelog:
-* 2.2.3: Close Issue#4
+Changelog:
+* 2.2.3: Close [Issue#4](https://github.com/biki-desu/AegisubScripts/issues/4)
 * 2.2.2: Do progress reporting, actually stop when user presses cancel, add a clear button and some local config
-* 2.2.1: Fix Issue#3
+* 2.2.1: Fix [Issue#3](https://github.com/biki-desu/AegisubScripts/issues/3)
 * 2.2: Add more functionality and clean up helper functions
 * 2.1.4: Make error message more accurate
 * 2.1.3: More error handling
