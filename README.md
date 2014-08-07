@@ -23,7 +23,7 @@ Aegisub Automation Scripts written by biki
 ### Prepend stuff to selected lines
 **File:** prepend.lua
 
-**Version:** 2.2.3
+**Version:** 2.2.4
 
 ##### Info:
 * This script can prepend & append text & tags from the textbox to selected lines.
@@ -41,6 +41,7 @@ Aegisub Automation Scripts written by biki
 * Add miscellaneous functionality, mainly [Issue#5](https://github.com/biki-desu/AegisubScripts/issues/5)
 
 ##### Changelog:
+* 2.2.4: Close [Issue#6](https://github.com/biki-desu/AegisubScripts/issues/6)
 * 2.2.3: Close [Issue#4](https://github.com/biki-desu/AegisubScripts/issues/4)
 * 2.2.2: Do progress reporting, actually stop when user presses cancel, add a clear button and some local config
 * 2.2.1: Fix [Issue#3](https://github.com/biki-desu/AegisubScripts/issues/3)

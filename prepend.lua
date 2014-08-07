@@ -3,7 +3,7 @@ local tr = aegisub.gettext
 script_name = tr"Prepend stuff to selected lines"
 script_description = tr"Prepends stuff from textbox to all selected lines"
 script_author = "biki-desu"
-script_version = "2.2.3"
+script_version = "2.2.4"
 
 --Set button labels / id's
 --Do it here because it's faster
@@ -107,28 +107,23 @@ function script_process(subs, selected_lines, supplied_lines, agi_button)
             local a
             if agi_button == t_pft then --Prepend first tag
                 a = string.find(l.text, "{")
-                if a == nil then
-                    l.text = "{}" .. l.text
-                    a = 1
-                end
             elseif agi_button == t_aft then --Append first tag
                 a = string.find(l.text, "}")
-                if a == nil then
-                    l.text = "{}" .. l.text
-                    a = 1
-                else
-                    a = a - 1 --we want to append BEFORE the "}"
-                end
             elseif agi_button == t_plt then --Prepend last tag
                 a = string.find(l.text, "{[^{]*$")
-                if a == nil then err(tr"The action cannot be performed because there are no tags in the line.") end
             elseif agi_button == t_alt then --Append last tag
                 _, a = string.find(l.text, "{.*}")
-                if a == nil then err(tr"The action cannot be performed because there are no tags in the line.") end
-                a = a - 1 --we want to append BEFORE the "}"
             else --this should not happen, but is here just in case I add an extra button and don't write any processing code for it
                 fatal(tr"Unknown action requested, cannot continue.")
             end
+
+            if a == nil then
+                if not isEmpty(supplied_lines[y]) then l.text = "{}" .. l.text end
+                a = 1
+            elseif agi_button == t_aft or agi_button == t_alt then
+                a = a - 1 --we want to append BEFORE the "}"
+            end
+
             l.text = string.sub(l.text, 1, a) .. supplied_lines[y] .. string.sub(l.text, a + 1, string.find(l.text, "$"))
         end
 
