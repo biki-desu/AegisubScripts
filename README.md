@@ -6,43 +6,18 @@ Aegisub Automation Scripts written by biki
 ## ./
 --------------
 
-### Copy tags
-**File:** copytags.lua
 
-**Version:** 1.3.3
+### Copypaste tags
+**File:** copypastetags.lua
 
-**Info:** Strips out text and comments from selected lines and puts them in a textbox (doesn't modify original lines). Can also copy tags directly to clipboard (for hotkey binding (no gui)).
+**Version:** 2.0
 
-##### To-do: 
-* Make copypastetags.lua
-
-##### Changelog: 
-* 1.3.3: Actually do error handling & gettext
-* 1.3.2: Fix line endings bug
-* 1.3.1: Fix syntax error
-* 1.3: Added clipboard functionality
-* 1.2: Bugfix: strip comments
-* 1.1: Rewrite & initial commit
-* 1.0: Initial version (deprecated)
-
-
-### Paste tags
-**File:** pastetags.lua
-
-**Version:** 1.1.4
-
-**Info:** Pastes tags from clipboard (prepends them to the line), same (basic) core functionality as "Prepend stuff to selected lines" but with no gui and less features, designed for hotkey binding.
-
-##### To-do:
-* Make copypastetags.lua
+**Info:** This script has no gui, it's designed for hotkey binding. This script can:
+* Strip out text and comments from selected lines and put them into the clipboard.
+* Paste tags from clipboard (prepends them to the line), same (basic) core functionality as "Prepend stuff to selected lines" but with no gui and less features.
 
 ##### Changelog: 
-* 1.1.4: Make error message more accurate
-* 1.1.3: Unbreak the script
-* 1.1.2: More error handling & clean up helper function, fix error in an edge case
-* 1.1.1: Actually do error handling & gettext
-* 1.1: Make the script actually work & fix line endings
-* 1.0: Initial commit (broken)
+* 2.0: Initial merge of copytags.lua and pastetags.lua
 
 
 ### Prepend stuff to selected lines
@@ -79,7 +54,6 @@ Aegisub Automation Scripts written by biki
 * 2.0: Initial full rewrite of add-stuff-to-selected-lines.lua@v1.1 & initial commit
 
 
-
 ## ./.old/
 --------------
 Old/deprecated versions of my scripts
@@ -93,9 +67,49 @@ Version: 1.1 (Superseded by "Prepend stuff to selected lines")
 Info: This script adds text from textbox to all selected lines
 
 
+### Copy tags
+**File:** copytags.lua
+
+**Version:** 1.3.3
+
+**Info:** Strips out text and comments from selected lines and puts them in a textbox (doesn't modify original lines). Can also copy tags directly to clipboard (for hotkey binding (no gui)).
+
+##### To-do: 
+* Make copypastetags.lua
+
+##### Changelog: 
+* 1.3.3: Actually do error handling & gettext
+* 1.3.2: Fix line endings bug
+* 1.3.1: Fix syntax error
+* 1.3: Added clipboard functionality
+* 1.2: Bugfix: strip comments
+* 1.1: Rewrite & initial commit
+* 1.0: Initial version (deprecated)
+
+
 ### Deduplicate
 File: deduplicate.ass
 
 Version: 1.0 (Broken and needs fixing)
 
 Info: It's meant to concatenate identical lines when importing from SRT which had one ASS line per frame throughout. It's not known if this works
+
+
+### Paste tags
+**File:** pastetags.lua
+
+**Version:** 1.1.4
+
+**Info:** Pastes tags from clipboard (prepends them to the line), same (basic) core functionality as "Prepend stuff to selected lines" but with no gui and less features, designed for hotkey binding.
+
+##### To-do:
+* Make copypastetags.lua
+
+##### Changelog: 
+* 1.1.4: Make error message more accurate
+* 1.1.3: Unbreak the script
+* 1.1.2: More error handling & clean up helper function, fix error in an edge case
+* 1.1.1: Actually do error handling & gettext
+* 1.1: Make the script actually work & fix line endings
+* 1.0: Initial commit (broken)
+
