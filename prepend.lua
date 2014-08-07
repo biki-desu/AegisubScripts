@@ -53,7 +53,17 @@ function script_gui(subs, selected_lines)
 
         if isInteger(#selected_lines / #supplied_lines) and not isEmpty(raw_supplied_lines) then
             local errtxt
-            if #selected_lines / #supplied_lines == 1 then errtxt = string.format(tr"Add %s things to %s selected lines.", #supplied_lines, #supplied_lines) elseif #selected_lines == 1 then errtxt = string.format(tr"Add %q to selected line.", raw_supplied_lines) elseif #selected_lines / #supplied_lines == #selected_lines then errtxt = string.format(tr"Add %q to %s selected lines.", raw_supplied_lines, #selected_lines) else errtxt = string.format(tr"Add %s things repeated %s times to %s selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines) end
+            if #selected_lines / #supplied_lines == 1 then
+                errtxt = string.format(tr"Add %d things to %d selected lines.", #supplied_lines, #supplied_lines)
+            elseif #selected_lines == 1 then
+                errtxt = string.format(tr"Add %q to selected line.", raw_supplied_lines)
+            elseif #supplied_lines == 1 then
+                errtxt = string.format(tr"Add %q to %d selected lines.", raw_supplied_lines, #selected_lines)
+            elseif isInteger(#selected_lines / #supplied_lines) then
+                errtxt = string.format(tr"Add %d things repeated %d times to %d selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines)
+            else
+                fatal(tr"Unknown error occoured, cannot continue.")
+            end
             aegisub.set_undo_point(errtxt)
             aegisub.progress.task(errtxt)
 
@@ -63,7 +73,7 @@ function script_gui(subs, selected_lines)
         elseif isEmpty(supplied_lines) then
             fatal(tr"Line parsing went wrong. THIS SCRIPT IS BROKEN.")
         elseif not isInteger(#selected_lines / #supplied_lines) then
-            err(string.format(tr"Line count of the selection (%s) doesn't match pasted data (%s).", #selected_lines, #supplied_lines))
+            err(string.format(tr"Line count of the selection (%d) doesn't match pasted data (%d).", #selected_lines, #supplied_lines))
         else
             fatal(tr"Unknown error occoured, cannot continue.")
         end
