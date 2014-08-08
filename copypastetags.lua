@@ -10,7 +10,7 @@ script_name_p = tr"Paste tags from clipboard"
 script_description_p = tr"Prepends tags from clipboard to selected lines"
 
 script_author = "biki-desu"
-script_version = "2.0"
+script_version = "2.0.1"
 
 clipboard = require 'aegisub.clipboard'
 
@@ -74,13 +74,15 @@ function isEmpty(x)
     elseif type(x) == "boolean" then
         return false --you're either true or false, so you cannot be empty
     else
-        hint(string.format(tr"isEmpty: Cannot check %s type", type(x)))
+        hint(string.format(tr"isEmpty: Cannot check %s type.", type(x)))
         return nil
     end
 end
 
 --This is a rewrite of stringToTable, this time with more functionality, less bloat and a variable delimeter
 function splitStringToTableWithDelimeter(sLine, sDelimeter)
+    if isEmpty(sLine) then fatal(tr"splitStringToTableWithDelimeter: the input string cannot be empty.") end
+    if isEmpty(sDelimeter) then fatal(tr"splitStringToTableWithDelimeter: the delimeter cannot be empty.") end
     local tTable = {}
 --counters
     local p = 1 --start of line segment to split
@@ -101,6 +103,7 @@ end
 
 --Strips text and comments from given table of lines
 function getTagsFromTable(tLines)
+    if isEmpty(tLines) then fatal(tr"getTagsFromTable: the input table cannot be empty.") end
     local tTags = {}
     for _, i in ipairs(tLines) do
         local sTags = ""
@@ -124,6 +127,7 @@ end
 
 --Iterator for string.find as we cannot use re.find due to compatibility
 function getTagsFromLine(sLine)
+    if isEmpty(sLine) then fatal(tr"getTagsFromLine: the input string cannot be empty.") end
     local sTags = ""
     local i = 1
     while true do

@@ -3,7 +3,7 @@ local tr = aegisub.gettext
 script_name = tr"Fix karaoke keyframes"
 script_description = tr"Shift/snap karaoke lines to keyframes and shift \\k tags accordingly."
 script_author = "biki-desu"
-script_version = "1.0"
+script_version = "1.0.1"
 
 --Set button labels / id's
 --Do it here because it's faster
@@ -173,7 +173,7 @@ function isEmpty(x)
     elseif type(x) == "boolean" then
         return false --you're either true or false, so you cannot be empty
     else
-        hint(string.format(tr"isEmpty: Cannot check %s type", type(x)))
+        hint(string.format(tr"isEmpty: Cannot check %s type.", type(x)))
         return nil
     end
 end
@@ -187,6 +187,7 @@ function round(x)
 end
 
 function process_karaoke_leadinout(subs, i, nLeadin, nLeadout)
+    if isEmpty(i) or i < 0 then fatal(tr"process_karaoke_leadinout: the input line index cannot be empty or negative.") end
     local l = subs[i]
 
     l.start_time = aegisub.ms_from_frame(aegisub.frame_from_ms(l.start_time) + nLeadin)

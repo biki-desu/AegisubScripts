@@ -3,7 +3,7 @@ local tr = aegisub.gettext
 script_name = tr"Prepend stuff to selected lines"
 script_description = tr"Prepends stuff from textbox to all selected lines"
 script_author = "biki-desu"
-script_version = "2.2.4"
+script_version = "2.2.5"
 
 --Set button labels / id's
 --Do it here because it's faster
@@ -14,6 +14,8 @@ local t_aft = tr"Append first tag"
 local t_plt = tr"Prepend last tag"
 local t_alt = tr"Append last tag"
 local t_ir
+local t_abcabc = "(abcabc) mode"
+local t_aabbcc = "(aabbcc) mode"
 local t_c = tr"Clear"
 local t_e = tr"Cancel"
 
@@ -38,7 +40,7 @@ end
 
 --This deals with the script GUI and does a large chunk of error checking
 function script_gui(subs, selected_lines)
-    if c_mode == 0 then t_ir = "(abcabc) mode" else t_ir = "(aabbcc) mode" end --set current mode button/id
+    if c_mode == 0 then t_ir = t_abcabc else t_ir = t_aabbcc end --set current mode button/id
 
     local agi_button, agi_result = aegisub.dialog.display(agi_dialog, {t_pl, t_al, t_pft, t_aft, t_plt, t_alt, t_ir, t_c, t_e})
     c_textbox = agi_result.textbox
@@ -172,7 +174,7 @@ function isEmpty(x)
     elseif type(x) == "boolean" then
         return false --you're either true or false, so you cannot be empty
     else
-        hint(string.format(tr"isEmpty: Cannot check %s type", type(x)))
+        hint(string.format(tr"isEmpty: Cannot check %s type.", type(x)))
         return nil
     end
 end
@@ -184,6 +186,8 @@ end
 
 --This is a rewrite of stringToTable, this time with more functionality, less bloat and a variable delimeter
 function splitStringToTableWithDelimeter(sLine, sDelimeter)
+    if isEmpty(sLine) then fatal(tr"splitStringToTableWithDelimeter: the input string cannot be empty.") end
+    if isEmpty(sDelimeter) then fatal(tr"splitStringToTableWithDelimeter: the delimeter cannot be empty.") end
     local tTable = {}
 --counters
     local p = 1 --start of line segment to split
