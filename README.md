@@ -20,6 +20,27 @@ Aegisub Automation Scripts written by biki
 * 2.0: Initial merge of copytags.lua and pastetags.lua
 
 
+### Fix karaoke keyframes
+**File:** fixkarakeyframes.lua
+
+**Version:** 1.0
+
+##### Info:
+* This script can shift karaoke lines by frames while maintaining audio sync.
+* This script can also autodetect keyframes and auto-snap start & end times to keyframes (**WARNING**: this required an xvid keyframe file to be loaded into aegisub), this can be done either on a per-frame basis or a mean average shifting all the frames.
+
+##### To-do:
+* Clean up helper functions
+* Add a half-decent keyframe bias estimator for consistent auto frame shift
+* Make a decent average function for consistent auto frame shift
+* Make per-frame auto frame shift actually work
+* Allow for a time shift instead of a frame-only shift
+* Actually make the auto frame snapping function work
+
+##### Changelog:
+* 1.0: Initial commit
+
+
 ### Prepend stuff to selected lines
 **File:** prepend.lua
 
