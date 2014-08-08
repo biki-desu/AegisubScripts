@@ -29,14 +29,18 @@ function script_start(subs, selected_lines, active_line)
         c_textbox = ""
     end
 
+    agi_dialog = {
+        { class = "textbox"; x = 0; y = 0; width = 80; height = 8; hint = tr"Please insert text here"; name = "textbox"; text = c_textbox; }
+    }
+
     script_gui(subs, selected_lines)
 end
 
---This deals with script GUI and does a large chunk of error checking
+--This deals with the script GUI and does a large chunk of error checking
 function script_gui(subs, selected_lines)
     if c_mode == 0 then t_ir = "(abcabc) mode" else t_ir = "(aabbcc) mode" end --set current mode button/id
 
-    local agi_button, agi_result = aegisub.dialog.display({{ class = "textbox"; x = 0; y = 0; width = 80; height = 8; hint = tr"Please insert text here"; name = "textbox"; text = c_textbox; }}, {t_pl, t_al, t_pft, t_aft, t_plt, t_alt, t_ir, t_c, t_e})
+    local agi_button, agi_result = aegisub.dialog.display(agi_dialog, {t_pl, t_al, t_pft, t_aft, t_plt, t_alt, t_ir, t_c, t_e})
     c_textbox = agi_result.textbox
 
     if agi_button == t_e then --Cancel
