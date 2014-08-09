@@ -64,12 +64,12 @@ Aegisub Automation Scripts written by biki, feel free to visit #biki on rizon!
 * Add miscellaneous functionality, mainly [Issue#5](https://github.com/biki-desu/AegisubScripts/issues/5)
 
 ##### Changelog:
-* 2.2.6: close [Issue#8](https://github.com/biki-desu/AegisubScripts/issues/8)
+* 2.2.6: Close [Issue#8](https://github.com/biki-desu/AegisubScripts/issues/8)
 * 2.2.5: Close [Issue#9](https://github.com/biki-desu/AegisubScripts/issues/9)
 * 2.2.4: Close [Issue#6](https://github.com/biki-desu/AegisubScripts/issues/6)
 * 2.2.3: Close [Issue#4](https://github.com/biki-desu/AegisubScripts/issues/4)
 * 2.2.2: Do progress reporting, actually stop when user presses cancel, add a clear button and some local config
-* 2.2.1: Fix [Issue#3](https://github.com/biki-desu/AegisubScripts/issues/3)
+* 2.2.1: Close [Issue#3](https://github.com/biki-desu/AegisubScripts/issues/3)
 * 2.2: Add more functionality and clean up helper functions
 * 2.1.4: Make error message more accurate
 * 2.1.3: More error handling
