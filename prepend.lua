@@ -3,7 +3,7 @@ local tr = aegisub.gettext
 script_name = tr"Prepend stuff to selected lines"
 script_description = tr"Prepends stuff from textbox to all selected lines"
 script_author = "biki-desu"
-script_version = "2.2.5"
+script_version = "2.2.6"
 
 --Set button labels / id's
 --Do it here because it's faster
@@ -54,27 +54,13 @@ function script_gui(subs, selected_lines)
         if c_mode == 1 then c_mode = 0 else c_mode = 1 end --invert the current mode
         script_gui(subs, selected_lines)
     else --don't care whenever prepending/appending at this point
-        local raw_supplied_lines = c_textbox --this needs to be a separate variable for a reason, don't change it!
-        local supplied_lines = splitStringToTableWithDelimeter(string.gsub(raw_supplied_lines, "\r\n", "\n"), "\n") --because windows sucks --not handling "\r" because this is long deprecated
-
-        if isInteger(#selected_lines / #supplied_lines) and not isEmpty(raw_supplied_lines) then
-            local errtxt
-            if #selected_lines / #supplied_lines == 1 then
-                errtxt = string.format(tr"Add %d things to %d selected lines.", #supplied_lines, #supplied_lines)
-            elseif #selected_lines == 1 then
-                errtxt = string.format(tr"Add %q to selected line.", raw_supplied_lines)
-            elseif #supplied_lines == 1 then
-                errtxt = string.format(tr"Add %q to %d selected lines.", raw_supplied_lines, #selected_lines)
-            elseif isInteger(#selected_lines / #supplied_lines) then
-                errtxt = string.format(tr"Add %d things repeated %d times to %d selected lines.", #supplied_lines, #selected_lines / #supplied_lines, #selected_lines)
-            else
-                fatal(tr"Unknown error occoured, cannot continue.")
-            end
-            aegisub.set_undo_point(errtxt)
-            aegisub.progress.task(errtxt)
-
+        local supplied_lines = splitStringToTableWithDelimeter(string.gsub(c_textbox, "\r\n", "\n"), "\n") --because windows sucks --not handling "\r" because this is long deprecated
+        if isInteger(#selected_lines / #supplied_lines) and not isEmpty(c_textbox) then
+            local sStatus = formatStatusMsg(agi_button, selected_lines, supplied_lines)
+            aegisub.progress.task(sStatus)
             script_process(subs, selected_lines, supplied_lines, agi_button)
-        elseif isEmpty(raw_supplied_lines) then
+            aegisub.set_undo_point(firstCharToLowercase(sStatus))
+        elseif isEmpty(c_textbox) then
             warn(tr"No text supplied, nothing to do.")
         elseif isEmpty(supplied_lines) then
             fatal(tr"Line parsing went wrong. THIS SCRIPT IS BROKEN.")
@@ -159,6 +145,44 @@ function warn(errtxt)
 end
 function hint(errtxt)
     aegisub.log(3, errtxt)
+end
+
+--A dirty function to turn the first character of a string to lower case
+function firstCharToLowercase(sString)
+    return string.lower(string.sub(sString, 1, 1)) .. string.sub(sString, 2, string.find(sString, "$"))
+end
+
+--Dialog and undo text formatting
+function formatStatusMsg(agi_button, selected_lines, supplied_lines)
+    local nSub, sActName
+    if string.sub(agi_button, 8, 8) == " " then
+        sActName = tr"Prepending"
+        nSub = 9
+    else
+        sActName = tr"Appending"
+        nSub = 8
+    end
+    local sActType = string.sub(agi_button, nSub, string.find(agi_button, "$"))
+    local nSel = #selected_lines
+    local nSup = #supplied_lines
+    local sMsg
+    if nSel == 1 and nSup == 1 then
+        local sText = string.gsub(c_textbox, "\\\\", "\\")
+        sMsg = string.format(tr"%s %q to the %s.", sActName, sText, sActType)
+    elseif nSup == 1 then
+        local sText = string.gsub(c_textbox, "\\\\", "\\")
+        sMsg = string.format(tr"%s %q to the %s %d times.", sActName, sText, sActType, nSel)
+    elseif nSel == nSup then
+        sMsg = string.format(tr"%s %d things to the %d %s.", sActName, nSup, nSel, sActType .. "s")
+    elseif isInteger(nSel / nSup) then
+        local sMode
+        if c_mode == 0 then sMode = t_abcabc else sMode = t_aabbcc end
+        sMsg = string.format(tr"%s %d things repeated %d times to %d %s using %s.", sActName, nSup, (nSel / nSup), nSel, sActType .. "s", sMode)
+        if nSel / nSup == 2 then sMsg = string.gsub(sMsg, "2 times", "twice") end
+    else
+        fatal(tr"formatStatusMsg: Requested message cannot be formatted.")
+    end
+    return sMsg
 end
 
 --checks if there is something in the string, now with more types

@@ -1,7 +1,7 @@
 AegisubScripts
 --------------
 
-Aegisub Automation Scripts written by biki
+Aegisub Automation Scripts written by biki, feel free to visit #biki on rizon!
 
 ## ./
 --------------
@@ -10,7 +10,7 @@ Aegisub Automation Scripts written by biki
 ### Copy/paste tags to/from clipboard
 **File:** copypastetags.lua
 
-**Version:** 2.0
+**Version:** 2.0.1
 
 **Info:** This script has no gui, it's designed for hotkey binding. This script can:
 * Strip out text and comments from selected lines and put them into the clipboard.
@@ -24,7 +24,7 @@ Aegisub Automation Scripts written by biki
 ### Fix karaoke keyframes
 **File:** fixkarakeyframes.lua
 
-**Version:** 1.0
+**Version:** 1.0.1
 
 ##### Info:
 * This script can shift karaoke lines by frames while maintaining audio sync.
@@ -46,7 +46,7 @@ Aegisub Automation Scripts written by biki
 ### Prepend stuff to selected lines
 **File:** prepend.lua
 
-**Version:** 2.2.5
+**Version:** 2.2.6
 
 ##### Info:
 * This script can prepend & append text & tags from the textbox to selected lines.
@@ -64,6 +64,7 @@ Aegisub Automation Scripts written by biki
 * Add miscellaneous functionality, mainly [Issue#5](https://github.com/biki-desu/AegisubScripts/issues/5)
 
 ##### Changelog:
+* 2.2.6: close [Issue#8](https://github.com/biki-desu/AegisubScripts/issues/8)
 * 2.2.5: Close [Issue#9](https://github.com/biki-desu/AegisubScripts/issues/9)
 * 2.2.4: Close [Issue#6](https://github.com/biki-desu/AegisubScripts/issues/6)
 * 2.2.3: Close [Issue#4](https://github.com/biki-desu/AegisubScripts/issues/4)
