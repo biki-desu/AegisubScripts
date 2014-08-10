@@ -88,7 +88,7 @@ Old/deprecated versions of my scripts
 ### Add stuff to selected lines
 **File:** add-stuff-to-selected-lines.lua
 
-**Version:** 1.1 (Superseded by prepend.lua)
+**Version:** 1.1 (**Superseded** by prepend.lua)
 
 **Info:** This script adds text from textbox to all selected lines
 
@@ -96,7 +96,7 @@ Old/deprecated versions of my scripts
 ### Copy tags
 **File:** copytags.lua
 
-**Version:** 1.3.3 (Superseded by copypastetags.lua)
+**Version:** 1.3.3 (**Superseded** by copypastetags.lua)
 
 **Info:** Strips out text and comments from selected lines and puts them in a textbox (doesn't modify original lines). Can also copy tags directly to clipboard (for hotkey binding (no gui)).
 
@@ -121,7 +121,7 @@ Old/deprecated versions of my scripts
 ### Paste tags
 **File:** pastetags.lua
 
-**Version:** 1.1.4 (Superseded by copypastetags.lua)
+**Version:** 1.1.4 (**Superseded** by copypastetags.lua)
 
 **Info:** Pastes tags from clipboard (prepends them to the line), same (basic) core functionality as "Prepend stuff to selected lines" but with no gui and less features, designed for hotkey binding.
 
