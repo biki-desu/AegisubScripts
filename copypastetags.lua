@@ -107,7 +107,7 @@ function getTagsFromTable(tLines)
     local tTags = {}
     for _, i in ipairs(tLines) do
         local sTags = ""
-        sTags = string.gsub(getTagsFromLine(i), "\r\n", "\n")
+        sTags = string.gsub(string.gsub(getTagsFromLine(i), "\r\n", "\n"), "\r", "\n")
         sTags = string.gsub(sTags, "\n", "\\N") --if for some reason a line has a \n in it, replace it with \\N
         table.insert(tTags,sTags)
     end

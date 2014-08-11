@@ -54,7 +54,7 @@ function script_gui(subs, selected_lines)
         if c_mode == 1 then c_mode = 0 else c_mode = 1 end --invert the current mode
         script_gui(subs, selected_lines)
     else --don't care whenever prepending/appending at this point
-        local supplied_lines = splitStringToTableWithDelimeter(string.gsub(c_textbox, "\r\n", "\n"), "\n") --because windows sucks --not handling "\r" because this is long deprecated
+        local supplied_lines = splitStringToTableWithDelimeter(string.gsub(string.gsub(c_textbox, "\r\n", "\n"), "\r", "\n"), "\n") --because windows sucks --not handling "\r" because this is long deprecated
         if isInteger(#selected_lines / #supplied_lines) and not isEmpty(c_textbox) then
             local sStatus = formatStatusMsg(agi_button, selected_lines, supplied_lines)
             aegisub.progress.task(sStatus)
