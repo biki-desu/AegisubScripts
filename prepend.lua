@@ -3,7 +3,7 @@ local tr = aegisub.gettext
 script_name = tr"Prepend stuff to selected lines"
 script_description = tr"Prepends stuff from textbox to all selected lines"
 script_author = "biki-desu"
-script_version = "2.2.6"
+script_version = "2.2.7"
 
 --Set button labels / id's
 --Do it here because it's faster
@@ -20,45 +20,51 @@ local t_c = tr"Clear"
 local t_e = tr"Cancel"
 
 --Configuration
+local c_act = nil --action, true = prepend, false == append
 local c_keepconfig = false --keep script configuration
-local c_mode = 0 --0 means repetitive "abcabcabc", 1 means iterative "aaabbbccc"
+local c_mode = true --true means repetitive "abcabcabc", false means iterative "aaabbbccc"
+local c_nth = nil --1st tag
 local c_textbox = "" --default text
 
 --This is called first, deals with configuration
 function script_start(subs, selected_lines, active_line)
     if not c_keepconfig then --Check if we want to keep configuration, if not then reset to default
-        c_mode = 0
+        c_mode = true
+        c_nth = nil
         c_textbox = ""
     end
 
-    agi_dialog = {
-        { class = "textbox"; x = 0; y = 0; width = 80; height = 8; hint = tr"Please insert text here"; name = "textbox"; text = c_textbox; }
-    }
+    c_act = nil
 
     script_gui(subs, selected_lines)
 end
 
 --This deals with the script GUI and does a large chunk of error checking
 function script_gui(subs, selected_lines)
-    if c_mode == 0 then t_ir = t_abcabc else t_ir = t_aabbcc end --set current mode button/id
+    t_ir = c_mode and t_abcabc or t_aabbcc --set current mode button/id
+
+    local agi_dialog = {
+        { class = "textbox"; x = 0; y = 0; width = 70; height = 8; hint = tr"Please insert text here"; name = "textbox"; text = c_textbox; }
+    }
 
     local agi_button, agi_result = aegisub.dialog.display(agi_dialog, {t_pl, t_al, t_pft, t_aft, t_plt, t_alt, t_ir, t_c, t_e})
+    c_act, c_nth = getConfigFromButton(agi_button)
     c_textbox = agi_result.textbox
 
-    if agi_button == t_e then --Cancel
+    if c_act == t_e then --Cancel
         aegisub.cancel()
-    elseif agi_button == t_c then --Clear
+    elseif c_act == t_c then --Clear
         c_textbox = ""
         script_gui(subs, selected_lines)
-    elseif agi_button == t_ir then --Mode
-        if c_mode == 1 then c_mode = 0 else c_mode = 1 end --invert the current mode
+    elseif c_act == t_ir then --Mode
+        c_mode = not c_mode --invert the current mode
         script_gui(subs, selected_lines)
     else --don't care whenever prepending/appending at this point
         local supplied_lines = splitStringToTableWithDelimeter(string.gsub(string.gsub(c_textbox, "\r\n", "\n"), "\r", "\n"), "\n") --because windows sucks --not handling "\r" because this is long deprecated
         if isInteger(#selected_lines / #supplied_lines) and not isEmpty(c_textbox) then
-            local sStatus = formatStatusMsg(agi_button, selected_lines, supplied_lines)
+            local sStatus = formatStatusMsg(selected_lines, supplied_lines)
             aegisub.progress.task(sStatus)
-            script_process(subs, selected_lines, supplied_lines, agi_button)
+            script_process(subs, selected_lines, supplied_lines)
             aegisub.set_undo_point(firstCharToLowercase(sStatus))
         elseif isEmpty(c_textbox) then
             warn(tr"No text supplied, nothing to do.")
@@ -73,7 +79,7 @@ function script_gui(subs, selected_lines)
 end
 
 --This does the actual prepending/appending
-function script_process(subs, selected_lines, supplied_lines, agi_button)
+function script_process(subs, selected_lines, supplied_lines)
     local p_n = 1 --progress numerator
     local p_d = #selected_lines --progress denominator
 
@@ -81,7 +87,7 @@ function script_process(subs, selected_lines, supplied_lines, agi_button)
     for x, i in ipairs(selected_lines) do
         if aegisub.progress.is_cancelled() then aegisub.cancel() end --check if we need to cancel
 
-        if c_mode == 0 then --abcabc mode
+        if c_mode then --abcabc mode
             y = ((x - 1) % #supplied_lines) + 1 --arrays in lua start at 1 so this makes sense (-1 to make it 0,1... and +1 to make it 1,2...)
         else --aabbcc mode
             y = math.ceil((x / #selected_lines) * #supplied_lines)
@@ -91,28 +97,21 @@ function script_process(subs, selected_lines, supplied_lines, agi_button)
         local l = subs[i]
 
         --FYI, doing checking in the loop because it's silly to assume that all lines are the same
-        if agi_button == t_pl then --Prepend line
-            l.text = supplied_lines[y] .. l.text
-        elseif agi_button == t_al then --Append line
-            l.text = l.text .. supplied_lines[y]
+        if c_nth == 0 then
+            l.text = c_act and supplied_lines[y] .. l.text or l.text .. supplied_lines[y]
         else --P/A f/l tags
             local a
-            if agi_button == t_pft then --Prepend first tag
-                a = string.find(l.text, "{")
-            elseif agi_button == t_aft then --Append first tag
-                a = string.find(l.text, "}")
-            elseif agi_button == t_plt then --Prepend last tag
-                a = string.find(l.text, "{[^{]*$")
-            elseif agi_button == t_alt then --Append last tag
-                _, a = string.find(l.text, "{.*}")
+            if c_nth == 1 then
+                a = c_act and string.find(l.text, "{") or string.find(l.text, "}")
+            elseif c_nth == -1 then
+                a = c_act and string.find(l.text, "{[^{]*$") or string.find(l.text, "}[^}]*$")
             else --this should not happen, but is here just in case I add an extra button and don't write any processing code for it
                 fatal(tr"Unknown action requested, cannot continue.")
             end
-
             if a == nil then
                 if not isEmpty(supplied_lines[y]) then l.text = "{}" .. l.text end
                 a = 1
-            elseif agi_button == t_aft or agi_button == t_alt then
+            elseif not c_act then
                 a = a - 1 --we want to append BEFORE the "}"
             end
 
@@ -152,40 +151,85 @@ function firstCharToLowercase(sString)
     return string.lower(string.sub(sString, 1, 1)) .. string.sub(sString, 2, #sString + 1)
 end
 
+--Do this through another function because it clutters some other function >_>
+function getConfigFromButton(agi_button)
+    local c_act, c_nth = c_act, c_nth --don't modify globals
+    if agi_button == t_pl then --Prepend line
+        c_act = true
+        c_nth = 0
+    elseif agi_button == t_al then --Append line
+        c_act = false
+        c_nth = 0
+    elseif agi_button == t_pft then --Prepend first tag
+        c_act = true
+        c_nth = 1
+    elseif agi_button == t_aft then --Append first tag
+        c_act = false
+        c_nth = 1
+    elseif agi_button == t_plt then --Prepend last tag
+        c_act = true
+        c_nth = -1
+    elseif agi_button == t_alt then --Append last tag
+        c_act = false
+        c_nth = -1
+    elseif agi_button == t_ir then --Mode
+        c_act = t_ir
+        c_nth = nil
+    elseif agi_button == t_c then --Clear
+        c_act = t_c
+        c_nth = nil
+    elseif agi_button == t_e then --Cancel
+        c_act = t_e
+        c_nth = nil
+    else
+        fatal(tr"getConfigFromButton: Unknown action requested.")
+    end
+    return c_act, c_nth
+end
+
 --Dialog and undo text formatting
-function formatStatusMsg(agi_button, selected_lines, supplied_lines)
-    local nSub, sActName
-    if string.sub(agi_button, 8, 8) == " " then
+function formatStatusMsg(selected_lines, supplied_lines)
+    local c_act, c_nth, c_textbox = c_act, c_nth, c_textbox --don't modify globals
+    local sActName, sActType
+
+    if c_act then
         sActName = tr"Prepending"
-        nSub = 9
     else
         sActName = tr"Appending"
-        nSub = 8
     end
-    local sActType = string.sub(agi_button, nSub, string.find(agi_button, "$"))
+
+    if c_nth == 0 then
+        sActType = tr"the line"
+    elseif c_nth == 1 then
+        sActType = tr"the first tag"
+    elseif c_nth == -1 then
+        sActType = tr"the last tag"
+    else
+        fatal(tr"formatStatusMsg: Requested message cannot be formatted.")
+    end
+
     local nSel = #selected_lines
     local nSup = #supplied_lines
     local sMsg
     if nSel == 1 and nSup == 1 then
         local sText = string.gsub(c_textbox, "\\\\", "\\")
-        sMsg = string.format(tr"%s %q to the %s.", sActName, sText, sActType)
+        sMsg = string.format(tr"%s %q to %s.", sActName, sText, sActType)
     elseif nSup == 1 then
         local sText = string.gsub(c_textbox, "\\\\", "\\")
-        sMsg = string.format(tr"%s %q to the %s %d times.", sActName, sText, sActType, nSel)
+        sMsg = string.format(tr"%s %q to %s %d times.", sActName, sText, sActType, nSel)
     elseif nSel == nSup then
-        sMsg = string.format(tr"%s %d things to the %d %s.", sActName, nSup, nSel, sActType .. "s")
+        sMsg = string.format(tr"%s %d things to %d %s.", sActName, nSup, nSel, sActType .. "s")
     elseif isInteger(nSel / nSup) then
-        local sMode
-        if c_mode == 0 then sMode = t_abcabc else sMode = t_aabbcc end
+        local sMode = c_mode and t_abcabc or t_aabbcc
         sMsg = string.format(tr"%s %d things repeated %d times to %d %s using %s.", sActName, nSup, (nSel / nSup), nSel, sActType .. "s", sMode)
-        if nSel / nSup == 2 then sMsg = string.gsub(sMsg, "2 times", "twice") end
+        if nSel / nSup == 2 then sMsg:gsub("2 times", "twice") end
     else
         fatal(tr"formatStatusMsg: Requested message cannot be formatted.")
     end
     return sMsg
 end
 
---checks if there is something in the string, now with more types
+--Checks if there is something in the string, now with more types
 function isEmpty(x)
     if type(x) == "nil" then
         return true
@@ -210,8 +254,10 @@ end
 
 --This is a rewrite of stringToTable, this time with more functionality, less bloat and a variable delimeter
 function splitStringToTableWithDelimeter(sLine, sDelimeter)
+--checks
     if isEmpty(sLine) then fatal(tr"splitStringToTableWithDelimeter: the input string cannot be empty.") end
     if isEmpty(sDelimeter) then fatal(tr"splitStringToTableWithDelimeter: the delimeter cannot be empty.") end
+--return
     local tTable = {}
 --counters
     local p = 1 --start of line segment to split
