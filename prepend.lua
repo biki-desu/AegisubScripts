@@ -13,6 +13,8 @@ local t_pft = tr"Prepend first tag"
 local t_aft = tr"Append first tag"
 local t_plt = tr"Prepend last tag"
 local t_alt = tr"Append last tag"
+local t_pnt = tr"Prepend nth tag"
+local t_ant = tr"Append nth tag"
 local t_ir
 local t_abcabc = "(abcabc) mode"
 local t_aabbcc = "(aabbcc) mode"
@@ -105,8 +107,8 @@ function script_process(subs, selected_lines, supplied_lines)
                 a = c_act and string.find(l.text, "{") or string.find(l.text, "}")
             elseif c_nth == -1 then
                 a = c_act and string.find(l.text, "{[^{]*$") or string.find(l.text, "}[^}]*$")
-            else --this should not happen, but is here just in case I add an extra button and don't write any processing code for it
-                fatal(tr"Unknown action requested, cannot continue.")
+            else
+                a = c_act and stringRegexIterator(l.text, "{", c_nth) or stringRegexIterator(l.text, "}", c_nth)
             end
             if a == nil then
                 if not isEmpty(supplied_lines[y]) then l.text = "{}" .. l.text end
@@ -166,6 +168,10 @@ function getConfigFromButton(agi_button)
     elseif agi_button == t_aft then --Append first tag
         c_act = false
         c_nth = 1
+    elseif agi_button == t_pnt then --Prepend nth tag
+        c_act = true
+    elseif agi_button == t_ant then --Append nth tag
+        c_act = false
     elseif agi_button == t_plt then --Prepend last tag
         c_act = true
         c_nth = -1
@@ -192,20 +198,30 @@ function formatStatusMsg(selected_lines, supplied_lines)
     local c_act, c_nth, c_textbox = c_act, c_nth, c_textbox --don't modify globals
     local sActName, sActType
 
-    if c_act then
+    if c_act == true then
         sActName = tr"Prepending"
-    else
+    elseif c_act == false then
         sActName = tr"Appending"
+    else
+        fatal(tr"formatStatusMsg: Requested message cannot be formatted, unknown action requested.")
     end
 
-    if c_nth == 0 then
+    if c_nth == nil then
+        fatal(tr"formatStatusMsg: Requested message cannot be formatted, unknown position requested.")
+    elseif c_nth == 0 then
         sActType = tr"the line"
     elseif c_nth == 1 then
         sActType = tr"the first tag"
+    elseif c_nth == 2 then
+        sActType = tr"the 2nd tag"
+    elseif c_nth == 3 then
+        sActType = tr"the 3rd tag"
     elseif c_nth == -1 then
         sActType = tr"the last tag"
+    elseif isInteger(c_nth) then
+        sActType = string.format(tr"the %dth tag", c_nth)
     else
-        fatal(tr"formatStatusMsg: Requested message cannot be formatted.")
+        fatal(tr"formatStatusMsg: Requested message cannot be formatted, unknown position requested.")
     end
 
     local nSel = #selected_lines
@@ -224,7 +240,7 @@ function formatStatusMsg(selected_lines, supplied_lines)
         sMsg = string.format(tr"%s %d things repeated %d times to %d %s using %s.", sActName, nSup, (nSel / nSup), nSel, sActType .. "s", sMode)
         if nSel / nSup == 2 then sMsg:gsub("2 times", "twice") end
     else
-        fatal(tr"formatStatusMsg: Requested message cannot be formatted.")
+        fatal(tr"formatStatusMsg: Requested message cannot be formatted, unknown scenario requested.")
     end
     return sMsg
 end
@@ -250,6 +266,22 @@ end
 --Returns true if a number is an integer
 function isInteger(x)
     return math.floor(x)==x
+end
+
+--A shitty iterator because >effort
+function stringRegexIterator(sLine, sRegex, nPos)
+    if isEmpty(sLine) then fatal(tr"stringRegexIterator: the input string cannot be empty.") end
+    if isEmpty(sRegex) then fatal(tr"stringRegexIterator: the regular expression cannot be empty.") end
+    if isEmpty(nPos) then fatal(tr"stringRegexIterator: the 'stop after' point cannot be empty.") end
+    local i = 1
+    local x = 0
+
+    local p, q
+    for x = 1,nPos,1 do
+        p, q = string.find(sLine, sRegex, i)
+        if p == nil then break else i = q + 1 end
+    end
+    return p, q
 end
 
 --This is a rewrite of stringToTable, this time with more functionality, less bloat and a variable delimeter
