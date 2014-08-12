@@ -200,7 +200,7 @@ function process_karaoke_leadinout(subs, i, nLeadin, nLeadout)
     local ktag = string.match(r, "(\\[kK][fot]?)")
     local kval = string.match(r, "(%d+)") + math.floor((aegisub.ms_from_frame(aegisub.frame_from_ms(l.start_time) - nLeadin) - l.start_time) / 10)
 
-    l.text = string.sub(l.text, 1, p - 1) .. ktag .. kval .. string.sub(l.text, q + 1, string.find(l.text, "$"))
+    l.text = string.sub(l.text, 1, p - 1) .. ktag .. kval .. string.sub(l.text, q + 1, #l.text + 1)
     subs[i] = l
 end
 

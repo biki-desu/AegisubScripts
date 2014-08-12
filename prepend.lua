@@ -116,7 +116,7 @@ function script_process(subs, selected_lines, supplied_lines, agi_button)
                 a = a - 1 --we want to append BEFORE the "}"
             end
 
-            l.text = string.sub(l.text, 1, a) .. supplied_lines[y] .. string.sub(l.text, a + 1, string.find(l.text, "$"))
+            l.text = string.sub(l.text, 1, a) .. supplied_lines[y] .. string.sub(l.text, a + 1, #l.text + 1)
         end
 
         subs[i] = l
@@ -149,7 +149,7 @@ end
 
 --A dirty function to turn the first character of a string to lower case
 function firstCharToLowercase(sString)
-    return string.lower(string.sub(sString, 1, 1)) .. string.sub(sString, 2, string.find(sString, "$"))
+    return string.lower(string.sub(sString, 1, 1)) .. string.sub(sString, 2, #sString + 1)
 end
 
 --Dialog and undo text formatting
@@ -217,8 +217,8 @@ function splitStringToTableWithDelimeter(sLine, sDelimeter)
     local p = 1 --start of line segment to split
     local i = 0 --end of line segment to split + delimeter
 --consts
-    local _, l = string.find(sDelimeter, "$") --length of the delimeter
-    local q = string.find(sLine, "$") --end of line, because we want to a reference point at EOL, DEBUG-HINT: this is incremented by 1
+    local l = #sDelimeter --length of the delimeter
+    local q = #sLine + 1 --end of line, because we want to a reference point at EOL, DEBUG-HINT: this is incremented by 1
 --stuff
     while true do
         i = string.find(sLine, sDelimeter, i + l)
