@@ -16,59 +16,61 @@ local t_alt = tr"Append last tag"
 local t_pnt = tr"Prepend nth tag"
 local t_ant = tr"Append nth tag"
 local t_ir
-local t_abcabc = "(abcabc) mode"
-local t_aabbcc = "(aabbcc) mode"
+local t_abcabc = tr"(abcabc) mode"
+local t_aabbcc = tr"(aabbcc) mode"
 local t_c = tr"Clear"
 local t_e = tr"Cancel"
 
 --Configuration
-local c_act = nil --action, true = prepend, false == append
-local c_keepconfig = false --keep script configuration
-local c_mode = true --true means repetitive "abcabcabc", false means iterative "aaabbbccc"
-local c_nth = nil --1st tag
-local c_textbox = "" --default text
+local c = {
+    act = nil, --action, true = prepend, false == append
+    keepconfig = false, --keep script configuration
+    mode = true, --true means repetitive "abcabcabc", false means iterative "aaabbbccc"
+    nth = nil, --1st tag
+    textbox = "", --default text
+}
 
 --This is called first, deals with configuration
 function script_start(subs, selected_lines, active_line)
-    if not c_keepconfig then --Check if we want to keep configuration, if not then reset to default
-        c_mode = true
-        c_nth = nil
-        c_textbox = ""
+    if not c.keepconfig then --Check if we want to keep configuration, if not then reset to default
+        c.mode = true
+        c.nth = nil
+        c.textbox = ""
     end
 
-    c_act = nil
+    c.act = nil
 
     script_gui(subs, selected_lines)
 end
 
 --This deals with the script GUI and does a large chunk of error checking
 function script_gui(subs, selected_lines)
-    t_ir = c_mode and t_abcabc or t_aabbcc --set current mode button/id
+    t_ir = c.mode and t_abcabc or t_aabbcc --set current mode button/id
 
     local agi_dialog = {
-        { class = "textbox"; x = 0; y = 0; width = 70; height = 8; hint = tr"Please insert text here"; name = "textbox"; text = c_textbox; }
+        { class = "textbox"; x = 0; y = 0; width = 70; height = 8; hint = tr"Please insert text here"; name = "textbox"; text = c.textbox; }
     }
 
     local agi_button, agi_result = aegisub.dialog.display(agi_dialog, {t_pl, t_al, t_pft, t_aft, t_plt, t_alt, t_ir, t_c, t_e})
-    c_act, c_nth = getConfigFromButton(agi_button)
-    c_textbox = agi_result.textbox
+    c.act, c.nth = getConfigFromButton(agi_button)
+    c.textbox = agi_result.textbox
 
-    if c_act == t_e then --Cancel
+    if c.act == t_e then --Cancel
         aegisub.cancel()
-    elseif c_act == t_c then --Clear
-        c_textbox = ""
+    elseif c.act == t_c then --Clear
+        c.textbox = ""
         script_gui(subs, selected_lines)
-    elseif c_act == t_ir then --Mode
-        c_mode = not c_mode --invert the current mode
+    elseif c.act == t_ir then --Mode
+        c.mode = not c.mode --invert the current mode
         script_gui(subs, selected_lines)
     else --don't care whenever prepending/appending at this point
-        local supplied_lines = splitStringToTableWithDelimeter(string.gsub(string.gsub(c_textbox, "\r\n", "\n"), "\r", "\n"), "\n") --because windows sucks --not handling "\r" because this is long deprecated
-        if isInteger(#selected_lines / #supplied_lines) and not isEmpty(c_textbox) then
+        local supplied_lines = splitStringToTableWithDelimeter(string.gsub(string.gsub(c.textbox, "\r\n", "\n"), "\r", "\n"), "\n") --because windows sucks --not handling "\r" because this is long deprecated
+        if isInteger(#selected_lines / #supplied_lines) and not isEmpty(c.textbox) then
             local sStatus = formatStatusMsg(selected_lines, supplied_lines)
             aegisub.progress.task(sStatus)
             script_process(subs, selected_lines, supplied_lines)
             aegisub.set_undo_point(firstCharToLowercase(sStatus))
-        elseif isEmpty(c_textbox) then
+        elseif isEmpty(c.textbox) then
             warn(tr"No text supplied, nothing to do.")
         elseif isEmpty(supplied_lines) then
             fatal(tr"Line parsing went wrong. THIS SCRIPT IS BROKEN.")
@@ -89,7 +91,7 @@ function script_process(subs, selected_lines, supplied_lines)
     for x, i in ipairs(selected_lines) do
         if aegisub.progress.is_cancelled() then aegisub.cancel() end --check if we need to cancel
 
-        if c_mode then --abcabc mode
+        if c.mode then --abcabc mode
             y = ((x - 1) % #supplied_lines) + 1 --arrays in lua start at 1 so this makes sense (-1 to make it 0,1... and +1 to make it 1,2...)
         else --aabbcc mode
             y = math.ceil((x / #selected_lines) * #supplied_lines)
@@ -99,21 +101,21 @@ function script_process(subs, selected_lines, supplied_lines)
         local l = subs[i]
 
         --FYI, doing checking in the loop because it's silly to assume that all lines are the same
-        if c_nth == 0 then
-            l.text = c_act and supplied_lines[y] .. l.text or l.text .. supplied_lines[y]
+        if c.nth == 0 then
+            l.text = c.act and supplied_lines[y] .. l.text or l.text .. supplied_lines[y]
         else --P/A f/l tags
             local a
-            if c_nth == 1 then
-                a = c_act and string.find(l.text, "{") or string.find(l.text, "}")
-            elseif c_nth == -1 then
-                a = c_act and string.find(l.text, "{[^{]*$") or string.find(l.text, "}[^}]*$")
+            if c.nth == 1 then
+                a = c.act and string.find(l.text, "{") or string.find(l.text, "}")
+            elseif c.nth == -1 then
+                a = c.act and string.find(l.text, "{[^{]*$") or string.find(l.text, "}[^}]*$")
             else
-                a = c_act and stringRegexIterator(l.text, "{", c_nth) or stringRegexIterator(l.text, "}", c_nth)
+                a = c.act and stringRegexIterator(l.text, "{", c.nth) or stringRegexIterator(l.text, "}", c.nth)
             end
             if a == nil then
                 if not isEmpty(supplied_lines[y]) then l.text = "{}" .. l.text end
                 a = 1
-            elseif not c_act then
+            elseif not c.act then
                 a = a - 1 --we want to append BEFORE the "}"
             end
 
@@ -155,7 +157,7 @@ end
 
 --Do this through another function because it clutters some other function >_>
 function getConfigFromButton(agi_button)
-    local c_act, c_nth = c_act, c_nth --don't modify globals
+    local c_act, c_nth = c.act, c.nth --don't modify globals
     if agi_button == t_pl then --Prepend line
         c_act = true
         c_nth = 0
@@ -195,7 +197,7 @@ end
 
 --Dialog and undo text formatting
 function formatStatusMsg(selected_lines, supplied_lines)
-    local c_act, c_nth, c_textbox = c_act, c_nth, c_textbox --don't modify globals
+    local c_act, c_nth, c_textbox = c.act, c.nth, c.textbox --don't modify globals
     local sActName, sActType
 
     if c_act == true then
