@@ -24,6 +24,7 @@ local t_e = tr"Cancel"
 --Configuration
 local c = {
     act = nil, --action, true = prepend, false == append
+    btn = nil,
     keepconfig = false, --keep script configuration
     mode = true, --true means repetitive "abcabcabc", false means iterative "aaabbbccc"
     nth = nil, --1st tag
@@ -31,7 +32,7 @@ local c = {
 }
 
 --This is called first, deals with configuration
-function script_start(subs, selected_lines, active_line)
+script_start = function (subs, selected_lines, active_line)
     if not c.keepconfig then --Check if we want to keep configuration, if not then reset to default
         c.mode = true
         c.nth = nil
@@ -44,26 +45,33 @@ function script_start(subs, selected_lines, active_line)
 end
 
 --This deals with the script GUI and does a large chunk of error checking
-function script_gui(subs, selected_lines)
-    t_ir = c.mode and t_abcabc or t_aabbcc --set current mode button/id
+script_gui = function (subs, selected_lines)
+    --Set current mode button/id
+    t_ir = c.mode and t_abcabc or t_aabbcc
 
+    --Gui config, this must be here as we want to set its initial text
     local agi_dialog = {
         { class = "textbox"; x = 0; y = 0; width = 70; height = 8; hint = tr"Please insert text here"; name = "textbox"; text = c.textbox; }
     }
-
     local agi_button, agi_result = aegisub.dialog.display(agi_dialog, {t_pl, t_al, t_pft, t_aft, t_plt, t_alt, t_ir, t_c, t_e})
-    c.act, c.nth = getConfigFromButton(agi_button)
+
+    --Set configuration from gui result
+    c.btn = agi_button --do it this way to avoid passing agi_result to every function >_>
+    c.act, c.nth = getConfigFromButton(agi_button) --pass it as an arg to make it clearer as to what this thing is doing
     c.textbox = agi_result.textbox
 
-    if c.act == t_e then --Cancel
+    --Determine what to do
+    if agi_button == nil then --This is here just in case the gui fails
+        fatal(tr"Unknown error occoured, cannot continue.")
+    elseif agi_button == t_e then --Cancel
         aegisub.cancel()
-    elseif c.act == t_c then --Clear
+    elseif agi_button == t_c then --Clear
         c.textbox = ""
         script_gui(subs, selected_lines)
-    elseif c.act == t_ir then --Mode
+    elseif agi_button == t_ir then --Mode
         c.mode = not c.mode --invert the current mode
         script_gui(subs, selected_lines)
-    else --don't care whenever prepending/appending at this point
+    else --do what this script is supposed to do
         local supplied_lines = splitStringToTableWithDelimeter(string.gsub(string.gsub(c.textbox, "\r\n", "\n"), "\r", "\n"), "\n") --because windows sucks --not handling "\r" because this is long deprecated
         if isInteger(#selected_lines / #supplied_lines) and not isEmpty(c.textbox) then
             local sStatus = formatStatusMsg(selected_lines, supplied_lines)
@@ -83,7 +91,7 @@ function script_gui(subs, selected_lines)
 end
 
 --This does the actual prepending/appending
-function script_process(subs, selected_lines, supplied_lines)
+script_process = function (subs, selected_lines, supplied_lines)
     local p_n = 1 --progress numerator
     local p_d = #selected_lines --progress denominator
 
@@ -125,7 +133,7 @@ function script_process(subs, selected_lines, supplied_lines)
         subs[i] = l
 
         aegisub.progress.set((p_n / p_d) * 100)
-        p_n = p_n + 1
+        p_n = p_n + 1 --Increment the numerator
     end
 end
 
@@ -134,59 +142,59 @@ end
 --------------------
 
 --lazy way of doing error dialogs
-function fatal(errtxt)
+fatal = function (errtxt)
     aegisub.log(0, errtxt)
     aegisub.cancel()
 end
-function err(errtxt)
+err = function (errtxt)
     aegisub.log(1, errtxt)
     aegisub.cancel()
 end
-function warn(errtxt)
+warn = function (errtxt)
     aegisub.log(2, errtxt)
     aegisub.cancel()
 end
-function hint(errtxt)
+hint = function (errtxt)
     aegisub.log(3, errtxt)
 end
 
 --A dirty function to turn the first character of a string to lower case
-function firstCharToLowercase(sString)
+firstCharToLowercase = function (sString)
     return string.lower(string.sub(sString, 1, 1)) .. string.sub(sString, 2, #sString + 1)
 end
 
 --Do this through another function because it clutters some other function >_>
-function getConfigFromButton(agi_button)
-    local c_act, c_nth = c.act, c.nth --don't modify globals
-    if agi_button == t_pl then --Prepend line
+getConfigFromButton = function (c_btn)
+    local c_act, c_nth = c.act, c.nth --don't modify globals but return them
+    if c_btn == t_pl then --Prepend line
         c_act = true
         c_nth = 0
-    elseif agi_button == t_al then --Append line
+    elseif c_btn == t_al then --Append line
         c_act = false
         c_nth = 0
-    elseif agi_button == t_pft then --Prepend first tag
+    elseif c_btn == t_pft then --Prepend first tag
         c_act = true
         c_nth = 1
-    elseif agi_button == t_aft then --Append first tag
+    elseif c_btn == t_aft then --Append first tag
         c_act = false
         c_nth = 1
-    elseif agi_button == t_pnt then --Prepend nth tag
+    elseif c_btn == t_pnt then --Prepend nth tag
         c_act = true
-    elseif agi_button == t_ant then --Append nth tag
+    elseif c_btn == t_ant then --Append nth tag
         c_act = false
-    elseif agi_button == t_plt then --Prepend last tag
+    elseif c_btn == t_plt then --Prepend last tag
         c_act = true
         c_nth = -1
-    elseif agi_button == t_alt then --Append last tag
+    elseif c_btn == t_alt then --Append last tag
         c_act = false
         c_nth = -1
-    elseif agi_button == t_ir then --Mode
+    elseif c_btn == t_ir then --Mode
         c_act = t_ir
         c_nth = nil
-    elseif agi_button == t_c then --Clear
+    elseif c_btn == t_c then --Clear
         c_act = t_c
         c_nth = nil
-    elseif agi_button == t_e then --Cancel
+    elseif c_btn == t_e then --Cancel
         c_act = t_e
         c_nth = nil
     else
@@ -196,32 +204,31 @@ function getConfigFromButton(agi_button)
 end
 
 --Dialog and undo text formatting
-function formatStatusMsg(selected_lines, supplied_lines)
-    local c_act, c_nth, c_textbox = c.act, c.nth, c.textbox --don't modify globals
+formatStatusMsg = function (selected_lines, supplied_lines)
     local sActName, sActType
 
-    if c_act == true then
+    if c.act == true then
         sActName = tr"Prepending"
-    elseif c_act == false then
+    elseif c.act == false then
         sActName = tr"Appending"
     else
         fatal(tr"formatStatusMsg: Requested message cannot be formatted, unknown action requested.")
     end
 
-    if c_nth == nil then
+    if c.nth == nil then
         fatal(tr"formatStatusMsg: Requested message cannot be formatted, unknown position requested.")
-    elseif c_nth == 0 then
+    elseif c.nth == 0 then
         sActType = tr"the line"
-    elseif c_nth == 1 then
+    elseif c.nth == 1 then
         sActType = tr"the first tag"
-    elseif c_nth == 2 then
+    elseif c.nth == 2 then
         sActType = tr"the 2nd tag"
-    elseif c_nth == 3 then
+    elseif c.nth == 3 then
         sActType = tr"the 3rd tag"
-    elseif c_nth == -1 then
+    elseif c.nth == -1 then
         sActType = tr"the last tag"
-    elseif isInteger(c_nth) then
-        sActType = string.format(tr"the %dth tag", c_nth)
+    elseif isInteger(c.nth) then
+        sActType = string.format(tr"the %dth tag", c.nth)
     else
         fatal(tr"formatStatusMsg: Requested message cannot be formatted, unknown position requested.")
     end
@@ -230,15 +237,15 @@ function formatStatusMsg(selected_lines, supplied_lines)
     local nSup = #supplied_lines
     local sMsg
     if nSel == 1 and nSup == 1 then
-        local sText = string.gsub(c_textbox, "\\\\", "\\")
+        local sText = string.gsub(c.textbox, "\\\\", "\\")
         sMsg = string.format(tr"%s %q to %s.", sActName, sText, sActType)
     elseif nSup == 1 then
-        local sText = string.gsub(c_textbox, "\\\\", "\\")
+        local sText = string.gsub(c.textbox, "\\\\", "\\")
         sMsg = string.format(tr"%s %q to %s %d times.", sActName, sText, sActType, nSel)
     elseif nSel == nSup then
         sMsg = string.format(tr"%s %d things to %d %s.", sActName, nSup, nSel, sActType .. "s")
     elseif isInteger(nSel / nSup) then
-        local sMode = c_mode and t_abcabc or t_aabbcc
+        local sMode = c.mode and t_abcabc or t_aabbcc
         sMsg = string.format(tr"%s %d things repeated %d times to %d %s using %s.", sActName, nSup, (nSel / nSup), nSel, sActType .. "s", sMode)
         if nSel / nSup == 2 then sMsg:gsub("2 times", "twice") end
     else
@@ -247,38 +254,41 @@ function formatStatusMsg(selected_lines, supplied_lines)
     return sMsg
 end
 
---Checks if there is something in the string, now with more types
-function isEmpty(x)
+--Checks if there is something in the variable as asserting is bad
+isEmpty = function (x)
     if type(x) == "nil" then
-        return true
+        return true --yup, an uninitialised variable
     elseif type(x) == "string" then
-        if x == "" then return true else return false end
+        x = "" and return true or return false
     elseif type(x) == "number" then
         return false --a "number" is a result of a calculation, so cannot be empty
     elseif type(x) == "table" then
-        if table.concat(x) == "" or table.concat(x) == nil then return true else return false end
+        return isEmpty(table.concat(x)) --can't really check if a table is empty, so concat it and check is the string is empty
     elseif type(x) == "boolean" then
         return false --you're either true or false, so you cannot be empty
     else
         hint(string.format(tr"isEmpty: Cannot check %s type.", type(x)))
-        return nil
+        return nil --any other type is probably not empty, but we're not certain
     end
 end
 
 --Returns true if a number is an integer
-function isInteger(x)
+isInteger function (x)
     return math.floor(x)==x
 end
 
---A shitty iterator because >effort
-function stringRegexIterator(sLine, sRegex, nPos)
+--A shitty iterator to find the nth result of a regex query
+stringRegexIterator = function (sLine, sRegex, nPos)
+--checks
     if isEmpty(sLine) then fatal(tr"stringRegexIterator: the input string cannot be empty.") end
     if isEmpty(sRegex) then fatal(tr"stringRegexIterator: the regular expression cannot be empty.") end
     if isEmpty(nPos) then fatal(tr"stringRegexIterator: the 'stop after' point cannot be empty.") end
+--return
+    local p, q = 0, 0
+--counters
     local i = 1
     local x = 0
-
-    local p, q
+--logic
     for x = 1,nPos,1 do
         p, q = string.find(sLine, sRegex, i)
         if p == nil then break else i = q + 1 end
@@ -286,20 +296,20 @@ function stringRegexIterator(sLine, sRegex, nPos)
     return p, q
 end
 
---This is a rewrite of stringToTable, this time with more functionality, less bloat and a variable delimeter
-function splitStringToTableWithDelimeter(sLine, sDelimeter)
+--Does what it says in the name, returns a table
+splitStringToTableWithDelimeter = function (sLine, sDelimeter)
 --checks
     if isEmpty(sLine) then fatal(tr"splitStringToTableWithDelimeter: the input string cannot be empty.") end
-    if isEmpty(sDelimeter) then fatal(tr"splitStringToTableWithDelimeter: the delimeter cannot be empty.") end
+    sDelimeter = nil and sDelimeter or "\n" --assume a default value if nil, it doesn't make any sense if a delim is nil, they could set it to the string nil tho
 --return
     local tTable = {}
---counters
-    local p = 1 --start of line segment to split
-    local i = 0 --end of line segment to split + delimeter
 --consts
     local l = #sDelimeter --length of the delimeter
     local q = #sLine + 1 --end of line, because we want to a reference point at EOL, DEBUG-HINT: this is incremented by 1
---stuff
+--counters
+    local p = 1 --start of line segment to split (x + 1)
+    local i = p - l --end of line segment to split minus the delimeter (which is later added thus making this equal to 1)
+--logic
     while true do
         i = string.find(sLine, sDelimeter, i + l)
         if i == nil then i = q end --no more delimeters so just get the end of the string...
