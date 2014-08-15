@@ -259,7 +259,7 @@ isEmpty = function (x)
     if type(x) == "nil" then
         return true --yup, an uninitialised variable
     elseif type(x) == "string" then
-        x = "" and return true or return false
+        if x == "" then return true else return false end
     elseif type(x) == "number" then
         return false --a "number" is a result of a calculation, so cannot be empty
     elseif type(x) == "table" then
@@ -273,7 +273,7 @@ isEmpty = function (x)
 end
 
 --Returns true if a number is an integer
-isInteger function (x)
+isInteger = function (x)
     return math.floor(x)==x
 end
 
