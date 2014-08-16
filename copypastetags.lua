@@ -14,12 +14,12 @@ script_version = "2.0.1"
 
 clipboard = require 'aegisub.clipboard'
 
-function copytags(subs, selected_lines, active_line)
+copytags = function (subs, selected_lines, active_line)
     local ourTags = getTagsFromSelectedLines(subs, selected_lines)
     if not clipboard.set(ourTags) then fatal(tr"The clipboard could not be set, an error occurred.") end
 end
 
-function pastetags(subs, selected_lines, active_line)
+pastetags = function (subs, selected_lines, active_line)
     local clipboard_contents = clipboard.get()
     if clipboard_contents == nil then err(tr"The clipboard does not currently contain text or an error occured.") end
     local supplied_lines = getTagsFromTable(splitStringToTableWithDelimeter(clipboard_contents, "\n"))
@@ -45,24 +45,24 @@ end
 --------------------
 
 --lazy way of doing error dialogs
-function fatal(errtxt)
+fatal = function (errtxt)
     aegisub.log(0, errtxt)
     aegisub.cancel()
 end
-function err(errtxt)
+err = function (errtxt)
     aegisub.log(1, errtxt)
     aegisub.cancel()
 end
-function warn(errtxt)
+warn = function (errtxt)
     aegisub.log(2, errtxt)
     aegisub.cancel()
 end
-function hint(errtxt)
+hint = function (errtxt)
     aegisub.log(3, errtxt)
 end
 
 --checks if there is something in the string, now with more types
-function isEmpty(x)
+isEmpty = function (x)
     if type(x) == "nil" then
         return true
     elseif type(x) == "string" then
@@ -80,17 +80,19 @@ function isEmpty(x)
 end
 
 --This is a rewrite of stringToTable, this time with more functionality, less bloat and a variable delimeter
-function splitStringToTableWithDelimeter(sLine, sDelimeter)
+splitStringToTableWithDelimeter = function (sLine, sDelimeter)
+--checks
     if isEmpty(sLine) then fatal(tr"splitStringToTableWithDelimeter: the input string cannot be empty.") end
-    if isEmpty(sDelimeter) then fatal(tr"splitStringToTableWithDelimeter: the delimeter cannot be empty.") end
+    sDelimeter = nil and sDelimeter or "\n" --assume a default value if nil, it doesn't make any sense if a delim is nil, they could set it to the string nil tho
+--return
     local tTable = {}
---counters
-    local p = 1 --start of line segment to split
-    local i = 0 --end of line segment to split + delimeter
 --consts
     local l = #sDelimeter --length of the delimeter
     local q = #sLine + 1 --end of line, because we want to a reference point at EOL, DEBUG-HINT: this is incremented by 1
---stuff
+--counters
+    local p = 1 --start of line segment to split (x + 1)
+    local i = p - l --end of line segment to split minus the delimeter (which is later added thus making this equal to 1)
+--logic
     while true do
         i = string.find(sLine, sDelimeter, i + l)
         if i == nil then i = q end --no more delimeters so just get the end of the string...
@@ -102,7 +104,7 @@ function splitStringToTableWithDelimeter(sLine, sDelimeter)
 end
 
 --Strips text and comments from given table of lines
-function getTagsFromTable(tLines)
+getTagsFromTable = function (tLines)
     if isEmpty(tLines) then fatal(tr"getTagsFromTable: the input table cannot be empty.") end
     local tTags = {}
     for _, i in ipairs(tLines) do
@@ -115,7 +117,7 @@ function getTagsFromTable(tLines)
 end
 
 --Code deduplication
-function getTagsFromSelectedLines(subs, selected_lines)
+getTagsFromSelectedLines = function (subs, selected_lines)
     local sTags = ""
     for _, i in ipairs(selected_lines) do
         local l = subs[i].text
@@ -126,7 +128,7 @@ function getTagsFromSelectedLines(subs, selected_lines)
 end
 
 --Iterator for string.find as we cannot use re.find due to compatibility
-function getTagsFromLine(sLine)
+getTagsFromLine = function (sLine)
     if isEmpty(sLine) then fatal(tr"getTagsFromLine: the input string cannot be empty.") end
     local sTags = ""
     local i = 1
