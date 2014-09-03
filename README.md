@@ -10,13 +10,14 @@ Aegisub Automation Scripts written by biki, feel free to visit #biki on rizon!
 ### Copy/paste tags to/from clipboard
 **File:** copypastetags.lua
 
-**Version:** 2.0.1
+**Version:** 2.1
 
 **Info:** This script has no gui, it's designed for hotkey binding. This script can:
 * Strip out text and comments from selected lines and put them into the clipboard.
 * Paste tags from clipboard (prepends them to the line), same (basic) core functionality as "Prepend stuff to selected lines" but with no gui and less features.
 
 ##### Changelog:
+* 2.1: Move the commands into a single menu entry.
 * 2.0.1: Close [Issue#9](https://github.com/biki-desu/AegisubScripts/issues/9)
 * 2.0: Initial merge of copytags.lua and pastetags.lua
 
