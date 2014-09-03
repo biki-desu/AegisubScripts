@@ -2,15 +2,8 @@ local tr = aegisub.gettext
 
 script_name = tr"Copy/paste tags to/from clipboard"
 script_description = tr"Copies/pastes tags from/to selected lines to/from clipboard"
-
-script_name_c = tr"Copy tags to clipboard"
-script_description_c = tr"Copies tags from selected lines to clipboard"
-
-script_name_p = tr"Paste tags from clipboard"
-script_description_p = tr"Prepends tags from clipboard to selected lines"
-
 script_author = "biki-desu"
-script_version = "2.0.1"
+script_version = "2.1"
 
 clipboard = require 'aegisub.clipboard'
 
@@ -27,16 +20,15 @@ pastetags = function (subs, selected_lines, active_line)
     if isEmpty(getTagsFromLine(clipboard_contents)) then
         warn(tr"The clipboard doesn't seem to contain any valid tags, nothing to do.")
     elseif not #selected_lines == #supplied_lines then
-        err(string.format(tr"Line count of the selection (%d) doesn't match pasted data (%d). Use prepend.lua for more advanced tag pasting.", #selected_lines, #supplied_lines))
+        err(string.format(tr"Line count of the selection (%d) doesn't match pasted data (%d). Use prepend.lua for more advanced pasting.", #selected_lines, #supplied_lines))
     else
-        aegisub.set_undo_point(tr)
-        
         for x, i in ipairs(selected_lines) do
             if aegisub.progress.is_cancelled() then aegisub.cancel() end --check if we need to cancel
             local l = subs[i]
             l.text = supplied_lines[x] .. l.text
             subs[i] = l
         end
+        aegisub.set_undo_point(tr"pasting tags from the clipboard.")
     end
 end
 
@@ -142,5 +134,5 @@ getTagsFromLine = function (sLine)
     return sTags
 end
 
-aegisub.register_macro(script_name_c, script_description_c, copytags)
-aegisub.register_macro(script_name_p, script_description_p, pastetags)
+aegisub.register_macro(tr"Copypaste tags/Copy tags to clipboard", tr"Copy tags from the selected lines to the clipboard", copytags)
+aegisub.register_macro(tr"Copypaste tags/Paste tags from clipboard", tr"Prepend tags from the clipboard to the selected lines", pastetags)
