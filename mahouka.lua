@@ -33,7 +33,7 @@ mahouka = function (subs, selected_lines, active_line)
 
 	if agi_button == t_e then
 		aegisub.cancel()
-	elseif agi_button == t_d then
+	elseif agi_button == t_m then
 		local tCount = 0
 		local tTable = {}
 		for i, j in ipairs(selected_lines) do
